@@ -1,0 +1,159 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{fontspec}
+\setmainfont{TeX Gyre Pagella}
+\newfontfamily\headfont{Inter}[UprightFont=*-ExtraBold,BoldFont=*-ExtraBold,Extension=.otf,Path=/usr/share/fonts/opentype/inter/]
+\usepackage[a4paper,margin=2.3cm]{geometry}
+\usepackage{graphicx,booktabs,float,caption,array,xcolor,longtable}
+\usepackage{xurl}
+\usepackage[hidelinks]{hyperref}
+\usepackage{titlesec}
+\usepackage[round]{natbib}
+\usepackage{setspace}
+\setstretch{1.05}
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\bottomfraction}{0.8}
+\renewcommand{\textfraction}{0.1}
+\renewcommand{\floatpagefraction}{0.75}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.55em}
+\titleformat{\section}{\headfont\Large}{\thesection}{0.8em}{}
+\titleformat{\subsection}{\headfont\large}{\thesubsection}{0.8em}{}
+\captionsetup{font=small,labelfont=bf}
+\urlstyle{same}
+\hypersetup{pdftitle={Every Battle in History},pdfauthor={Tristan Hotham}}
+
+
+\begin{document}
+\begin{center}
+{\Large\bfseries Every Battle in History\par}
+\vspace{0.4em}
+{\large Five thousand years of battles in Wikidata: where war happened,\\the most fought-over places, and how skewed the record is\par}
+\vspace{1.2em}
+{\large Tristan Hotham\par}
+\vspace{0.3em}
+{\small Independent researcher\\
+ORCID: 0000-0003-4931-9349\\
+DOI: \href{https://doi.org/{{meta.doi}}}{https://doi.org/{{meta.doi}}}\par}
+\vspace{0.8em}
+2026
+\end{center}
+
+\begin{quote}
+\small
+\begin{center}\textbf{Abstract}\end{center}
+Maps of ``every battle in history'' circulate widely, but rarely with dates, method or caveats. I map every Wikidata item that is an instance of battle or one of its subclasses: {{n|int}} items, of which {{n_map|int}} have both coordinates and a date, from a legendary battle placed in {{first.year_text|raw}} to 2026. The record is overwhelmingly recent: {{pct_since1500|pc}} of dated battles are after 1500 and {{pct_since1800|pc}} after 1800, with the {{peak_century.name|raw}} ({{c19|int}} battles) and the 20th ({{c20|int}}) the best recorded. The spherical median of each century's battles, a ``centre of war'', lies in Greece in the 5th century BCE and in Italy under Rome, and from the 5th to the 19th century lies within 800 km of the Alps in every century but the 7th; it has moved to {{centre_c21_place|raw}} in the 21st century. On an equal-area hexagonal grid the most fought-over region is {{flanders.name|raw}} ({{flanders.n|int}} battles in {{flanders.cent|int}} centuries), while the longest fought-over hexagon is {{hex_cent.0.name|raw}}, with battles in {{hex_cent.0.cent|int}} centuries. The best-recorded wars are the Second World War ({{ww2.n|int}} battle items), the First ({{ww1.n|int}}) and the American Civil War ({{acw.n|int}}). The record is strongly skewed: Europe has {{europe_pct|pc}} of mapped battles on {{europe_land_pct|pc}} of the world's land, coverage of some wars is extraordinarily dense, {{pct_nolabel|pc1}} of items lack an English label, and only {{kinds.0.pct|pc}} are labelled as battles at all. I argue that the map is best read as a map of the historical record as much as of war itself.
+
+\textbf{Keywords:} battles; military history; Wikidata; Wikipedia; knowledge gaps; historical GIS; spatial analysis; open data
+\end{quote}
+
+\section{Introduction}
+Maps that plot ``every battle in history'' are a familiar genre of online data visualisation. They are usually built from Wikidata or DBpedia, and they look alike: Europe dense with points, the eastern United States marked by the Civil War, and much of Africa, Asia and South America sparse. They are striking, but they are rarely dated, rarely explain what was counted, and almost never discuss how the underlying record was made.
+
+This paper rebuilds that map carefully and asks four descriptive questions. How are recorded battles distributed through time? Where was the ``centre'' of recorded war in each century? Which places have been fought over most often, and for longest? And how skewed is the record by region, period, language and the way battles are classified? The data are Wikidata's battle items \citep{wikidata}, retrieved through the QLever endpoint \citep{qlever}, with an additional layer from English Wikipedia's list of battles by casualties \citep{wp_cas}. An interactive version, with a time slider, filters by war and kind of event, and the layers used here, is at \url{{{meta.page}}}.
+
+Wikidata is a collaboratively edited knowledge base closely tied to Wikipedia. Its coverage reflects the interests of its editors and of the Wikipedia language editions it draws on, and earlier work has documented strong geographical and gender gaps in Wikipedia and Wikidata \citep{graham,redi}. Battles are a useful test case because they are a well defined kind of event, recorded across thousands of years and in every region of the world, and because their geography is often read as if it were the geography of war.
+
+\section{Data}
+\textbf{Battle items.} I selected every Wikidata item that is an instance of battle (Q178561) or of any subclass of it, with its English label, the number of Wikipedia sitelinks (language editions with an article), its own coordinates (P625), its location (P276) with that location's label and coordinates, its point in time (P585) and start time (P580), and the label of any item it is ``part of'' (P361). The query returned {{n_rows|int}} rows, one per combination of location and ``part of'' value, which reduce to {{n|int}} distinct items. Wikidata is released under CC0.
+
+\textbf{Coordinates.} {{n_own|int}} items have their own coordinates. For another {{n_locxy|int}} I used the coordinates of the item's location; when an item has several locations I took the one closest to their median. Location coordinates can be those of a town, a region or a sea, so these points are less precise. In all, {{n_xy|int}} items ({{pct_xy|pc}}) have a point.
+
+\textbf{Dates.} The year is the earliest point in time, else the earliest start time; {{n_dated|int}} items ({{pct_dated|pc}}) have one. The RDF export used by QLever writes years in astronomical numbering (year 0 is 1 BCE, $-216$ is 217 BCE), which I convert for display. Date precision was not exported, so a year may stand for a decade, a century or a millennium. Centuries are ordinal (the 19th century is 1801 to 1900), which places values such as 1300, Wikidata's encoding of the 13th century, in the right century. {{n_map|int}} items ({{pct_map|pc}}) have both a point and a date, and these form the main analysis set.
+
+\textbf{Casualties.} English Wikipedia's ``List of battles by casualties'' (revision {{cas.revid|raw}}, CC BY-SA 4.0) contains {{cas.n|int}} rows in five tables: sieges and urban combat, major operations, classical formation battles, raids and sacks, and naval battles. I took the highest casualty figure in each row and matched rows to Wikidata items by English label and year.
+
+\textbf{Geography.} Country and continent come from Natural Earth's 1:50m countries \citep{naturalearth}; city names for labels and search from Natural Earth populated places.
+
+\section{Methods}
+\textbf{Places and continents.} A battle takes the country whose outline contains its point, or for points at sea ({{n_sea|int}} of the mapped battles) the nearest country within 400 km. {{n_ocean|int}} battles further out are left without a continent. Russia west of the Urals and Turkey west of the Bosporus are counted as Europe.
+
+\textbf{Kinds of event.} Wikidata's subclasses of battle include sieges, naval battles, skirmishes, assaults and many more, and the classes are used inconsistently. I classify items instead by the first matching word in their English label: battle; siege; skirmish or action; raid, attack or capture; bombing or bombardment; massacre; operation or offensive; and other or no English label (Table~\ref{tab:kinds}).
+
+\textbf{Wars.} Each battle's war is the ``part of'' value with the most battles overall. Because Wikidata often records a theatre or campaign rather than a war, I grouped the theatres and campaigns of the two world wars into the wars themselves, only within 1914 to 1918 and 1939 to 1945.
+
+\textbf{Centre of war.} For each century with at least 20 mapped battles I computed the spherical geometric median: the point on the sphere that minimises the sum of great-circle distances to the century's battles, found with Weiszfeld's algorithm in three dimensions. The median is more robust than the mean position, which on a sphere is pulled poleward when points are widely spread; but when battles fall in two distant clusters the median lands between them, in a place where no battle was fought.
+
+\textbf{Hexagons and regions.} I counted battles on a grid of pointy-top hexagons in the Equal Earth projection (EPSG:8857; \citealp{equalearth}), so that each hexagon covers the same area: {{hex_km2|int}} km², about the size of Cyprus. To reduce the effect of where hexagon boundaries fall, I also built regions of seven hexagons (a hexagon and its six neighbours, {{region_km2|int}} km²), chosen greedily by battle count with no overlap. Places were named from the battles and locations inside them. I ranked hexagons both by the number of battles and by the number of distinct centuries in which a battle took place.
+
+\textbf{Bias.} I compare continents' shares of battles with their shares of the world's land (Natural Earth, excluding Antarctica, with the same Europe definition), and use sitelinks as a measure of how widely a battle is known.
+
+\section{Results}
+\subsection{Battles through time}
+Figure~\ref{fig:centuries} shows battles per century. Only {{n_before_2000bce|int}} are dated before 2000 BCE and {{n_bce|int}} before 1 CE. The oldest is the {{first.label|raw}} of Chinese tradition, placed in {{first.year_text|raw}}. Numbers rise slowly through the first millennium CE and steeply after 1500: {{pct_since1500|pc}} of dated battles are after 1500 and {{pct_since1800|pc}} after 1800. The {{peak_century.name|raw}} has {{c19|int}} battles, the 20th {{c20|int}} and the 18th {{c18|int}}; the 19th and 20th together hold {{c19_20_pct|pc}}. Per year, the rate is {{c19_per_year|f1}} in the 19th century, {{c20_per_year|f1}} in the 20th and {{c21_per_year|f1}} in the 21st so far. The busiest year is {{peak_year|raw}} ({{peak_year_n|int}} battles), followed by 1863 ({{top_years.1.1|int}}), and the busiest decade the {{peak_decade|raw}}s ({{peak_decade_n|int}}).
+
+\begin{figure}[tbp]\centering\includegraphics[width=\textwidth]{f_centuries.png}
+\caption{Dated battles per century, 13th century BCE to 21st century (2001 to 2026), coloured by the continent of mapped battles.}\label{fig:centuries}\end{figure}
+
+Figure~\ref{fig:world} maps every dated battle coloured by era, and Figure~\ref{fig:eras} shows each era separately on an equal-area hexagonal grid. Table~\ref{tab:eras} gives the continental shares by era.
+
+\begin{figure}[tbp]\centering\includegraphics[width=\textwidth]{f_world.png}
+\caption{Every mapped and dated battle item in Wikidata, coloured by era (Equal Earth projection).}\label{fig:world}\end{figure}
+
+\begin{figure}[tbp]\centering\includegraphics[width=\textwidth]{f_eras.png}
+\caption{Battles by era, counted in hexagons (one log colour scale for all panels).}\label{fig:eras}\end{figure}
+
+{{TABLE_ERAS}}
+
+\subsection{The centre of war}
+The centre of recorded war (Figure~\ref{fig:centre}, Table~\ref{tab:centres}) lies in Greece from the 6th to the 4th century BCE and in Italy for most of the Roman Republic. From the 5th to the 19th century CE it lies within 800 km of the middle of the Alps in every century except the 7th, moving between northern Italy, Austria, Switzerland, southern Germany, the Czech lands and northern France. The departures are informative. In the 2nd and 3rd centuries CE the median lies near the Caucasus and the Caspian because the record contains more Chinese battles than Roman ones ({{centre_c3_asia_pct|pc}} of the 3rd century's mapped battles are in Asia), and half of that century's battles are more than {{centre_c3_km|int}} km from the median. In the 7th century the Arab conquests move it to Syria. In the 20th it lies in Romania, between the Western Front, the Eastern Front and the Middle East. In the 21st century it is in {{centre_c21_place|raw}}, {{centre_move_20_21_km|int}} km from its 20th-century position, with {{asia_pct_21|pc}} of mapped battles in Asia and {{africa_pct_21|pc}} in Africa.
+
+\begin{figure}[tbp]\centering\includegraphics[width=\textwidth]{f_centre.png}
+\caption{The centre of war: the spherical geometric median of each century's mapped battles, for centuries with 20 or more.}\label{fig:centre}\end{figure}
+
+{{TABLE_CENTRES}}
+
+\subsection{The most fought-over places}
+{{flanders.name|raw}} is the most fought-over region: {{flanders.n|int}} battles across {{flanders.cent|int}} centuries, from Caesar's campaign against the Belgae through the Battle of the Golden Spurs, the Eighty Years' War, Ramillies and Malplaquet, Waterloo and the battles of Ypres (Figure~\ref{fig:places}, Table~\ref{tab:regions}). Its busiest hexagon, {{hex_top.0.name|raw}}, has {{hex_top.0.n|int}} battles, the most of any. Among countries of 20,000 km² or more, Belgium has the most battles per unit area, {{belgium.per10k|f1}} per 10,000 km² ({{belgium.n|int}} battles). The top ten hexagons hold {{hex_top10_pct|pc1}} of mapped battles and the top hundred {{hex_top100_pct|pc}}.
+
+Ranked by duration rather than number, the leaders are in the Levant and Italy. {{hex_cent.0.name|raw}} has battles in {{hex_cent.0.cent|int}} centuries, from {{hex_cent.0.y0t|raw}} to {{hex_cent.0.y1t|raw}}, and in all eight eras; only {{hex_all_eras|int}} hexagons do, the other being Baghdad. {{hex_cent.1.name|raw}} has {{hex_cent.1.cent|int}} centuries and Rome {{hex_cent.2.cent|int}}.
+
+The second region, {{regions.1.name|raw}} ({{regions.1.n|int}} battles), is an artefact of uneven description as much as of war: {{vendee_region_pct|pc}} of its battles belong to the War in the Vendée or the Chouannerie, which together have {{vendee|int}} battle items, more than the Thirty Years' War.
+
+\begin{figure}[tbp]\centering\includegraphics[width=\textwidth]{f_places.png}
+\caption{Battles in Europe and the Mediterranean in equal-area hexagons, with the fifteen most fought-over regions of seven hexagons (outlined and numbered; Richmond and eastern Virginia, number 10, is outside the map), and their battles by era.}\label{fig:places}\end{figure}
+
+{{TABLE_REGIONS}}
+
+\subsection{The best-recorded wars}
+{{pct_war|pc}} of battle items name a war, among {{n_conflicts|int}} distinct wars and campaigns (after grouping). The Second World War has {{ww2.n|int}} battle items, recorded under {{ww2_recorded_as|int}} different ``part of'' values; the First World War has {{ww1.n|int}} and the American Civil War {{acw.n|int}} (Figure~\ref{fig:wars}). The ten best-recorded wars hold {{wars_top10_pct|pc}} of the battles that name a war. Apart from the Korean, Vietnam, Syrian and Afghan wars, every one of the top 25 was fought mainly in Europe or North America.
+
+\begin{figure}[tbp]\centering\includegraphics[width=.92\textwidth]{f_wars.png}
+\caption{The twenty wars with the most battle items (world war theatres grouped), coloured by the continent with most of their mapped battles.}\label{fig:wars}\end{figure}
+
+\subsection{How skewed is the record?}
+Europe has {{europe_pct|pc}} of mapped battles and {{europe_land_pct|pc1}} of the land outside Antarctica, {{europe_x_land|f1}} times its share; Asia has {{asia_pct|pc}} and Africa {{africa_pct|pc}} (Figure~\ref{fig:bias}). Part of this is real, but a large part reflects how Wikipedia and Wikidata are written. The median battle has {{sitelinks_median|int}} sitelinks and {{pct_sl_le1|pc}} have one or none. Ancient battles in the record are better known than modern ones (median {{sl_med_ancient|int}} sitelinks before 500 CE against {{sl_med_modern|int}} after 1800), a survivorship effect: only famous ancient battles were written about. The most linked are {{most_linked.0.label|raw}} ({{most_linked.0.sl|int}}), {{most_linked.1.label|raw}} ({{most_linked.1.sl|int}}) and {{most_linked.2.label|raw}} ({{most_linked.2.sl|int}}).
+
+The class itself is inconsistent. Only {{kinds.0.pct|pc}} of items are labelled as battles in English (Table~\ref{tab:kinds}), and {{n_nolabel|int}} ({{pct_nolabel|pc1}}) have no English label. Conversely, many major engagements are not typed as battles: only {{cas.matched|int}} of the {{cas.n|int}} rows of Wikipedia's list of battles by casualties ({{cas.matched_pct|pc}}) match a Wikidata battle item, and unmatched rows include Operation Barbarossa, the Siege of Leningrad and the Battle of the Bulge. Among the {{cas.mapped|int}} rows I could map, {{cas.europe_pct|pc}} are in Europe and {{cas.asia_pct|pc}} in Asia.
+
+\begin{figure}[tbp]\centering\includegraphics[width=\textwidth]{f_bias.png}
+\caption{Left: sitelinks (Wikipedia language editions) of every dated battle against its year on a stretched time scale, with medians and 90th percentiles by century. Right: continents' shares of mapped battles and of land.}\label{fig:bias}\end{figure}
+
+{{TABLE_KINDS}}
+
+\section{Discussion}
+Read naively, the map says that war has been above all a European affair, that the Vendée was more fought over than China, and that the world became dramatically more violent after 1500. None of these readings is safe. The number of battles recorded for a place and period depends on surviving sources, on the attention of modern historians, and on the work of Wikipedia editors in particular languages. Europe's dominance in the record is partly real, since the continent was densely settled, politically fragmented and very often at war, but it is also the dominance of European historiography and of European-language Wikipedias. The very dense coverage of the American Civil War, the Vendée and the Polish-Soviet War reflects dedicated editing communities.
+
+Some patterns are robust to these caveats. The persistence of the Levant, the Po valley, southern Greece and the land between Rome and Naples as battlefields over two and a half thousand years reflects geography: these are corridors between powers, and places worth holding. Flanders' ranking reflects its position between France, the Low Countries and Germany and its role in the wars of the 17th to 20th centuries. And the movement of the centre of recorded war to the Middle East in the 21st century matches the wars in Syria, Iraq, Yemen and the Sahel, though it also reflects the real-time writing up of recent wars.
+
+\section{Limitations}
+First, these are Wikidata items, not battles: there is no complete list of battles against which to measure coverage. Second, the battle class is inconsistent, including sieges, raids and massacres while excluding many offensives and operations, and my classification by label words is rough. Third, coordinates taken from locations can be imprecise, and some ancient battles are legendary or placed by tradition. Fourth, date precision was not available, so ancient years can be approximate; centuries are ordinal. Fifth, the war of a battle depends on how ``part of'' was used, and my grouping covers only the world wars. Sixth, the hexagon and region rankings depend on the grid; the regions reduce but do not remove this. Seventh, casualty figures are Wikipedia's high estimates, frequently disputed, and only matched rows could be mapped. Finally, all counts are for one retrieval in 2026, and Wikidata changes daily.
+
+\section{Conclusion}
+A careful map of every battle in Wikidata shows a record that is deep in time but strongly concentrated in Europe and in the last five centuries, a centre of recorded war that stayed near the Alps for two thousand years and has now moved to the Middle East, and a handful of places, Flanders, the Po valley and the southern Levant above all, fought over again and again. It also shows how far such maps describe the historical record rather than war. The interactive version lets readers explore both.
+
+\section*{Data and code availability}
+The interactive map is at \url{{{meta.page}}}. Data and code are at \url{{{meta.repo}}} and archived with this paper at \url{https://doi.org/{{meta.doi}}}. Derived data are released under CC BY 4.0, except the casualty table derived from Wikipedia (CC BY-SA 4.0); code under the MIT licence.
+
+\section*{AI statement}
+I wrote the text, with drafting and editing assistance from Claude (Anthropic), which also helped prepare the analysis code. I reviewed and checked all text and results.
+
+\begin{thebibliography}{9}
+\bibitem[Bast and Buchhold(2017)]{qlever} Bast, H. and Buchhold, B. (2017) QLever: a query engine for efficient SPARQL+text search. \emph{Proceedings of the 2017 ACM Conference on Information and Knowledge Management}, 647 to 656. \url{https://qlever.cs.uni-freiburg.de/}
+\bibitem[Graham et al.(2014)]{graham} Graham, M., Hogan, B., Straumann, R. K. and Medhat, A. (2014) Uneven geographies of user-generated information: patterns of increasing informational poverty. \emph{Annals of the Association of American Geographers}, 104(4), 746 to 764.
+\bibitem[Natural Earth(2026)]{naturalearth} Natural Earth (2026) Admin 0 countries (1:50m) and populated places (1:10m). Public domain. \url{https://www.naturalearthdata.com/}
+\bibitem[Redi et al.(2020)]{redi} Redi, M., Gerlach, M., Johnson, I., Morgan, J. and Zia, L. (2020) A taxonomy of knowledge gaps for Wikimedia projects. arXiv:2008.12314.
+\bibitem[Šavrič et al.(2019)]{equalearth} Šavrič, B., Patterson, T. and Jenny, B. (2019) The Equal Earth map projection. \emph{International Journal of Geographical Information Science}, 33(3), 454 to 465.
+\bibitem[Vrandečić and Krötzsch(2014)]{wikidata} Vrandečić, D. and Krötzsch, M. (2014) Wikidata: a free collaborative knowledgebase. \emph{Communications of the ACM}, 57(10), 78 to 85.
+\bibitem[Wikipedia(2026)]{wp_cas} Wikipedia contributors (2026) List of battles by casualties. English Wikipedia, revision {{cas.revid|raw}}, CC BY-SA 4.0. \url{https://en.wikipedia.org/wiki/List_of_battles_by_casualties}
+\end{thebibliography}
+\end{document}

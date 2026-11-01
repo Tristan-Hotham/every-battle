@@ -1,0 +1,794 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Every Battle in History</title>
+<meta name="description" content="{{n|int}} battles in Wikidata, {{n_map|int}} of them mapped and dated from {{first.year_text|raw}} to 2026: where war happened century by century, how the centre of war moved, the most fought-over places on Earth, and how skewed the record is.">
+<meta property="og:title" content="Every battle in history, mapped">
+<meta property="og:description" content="{{n_map|int}} battles with a place and a date, {{first.year_text|raw}} to 2026. The most fought-over region: {{flanders.name|raw}}, {{flanders.n|int}} battles. Europe has {{europe_pct|pc}} of them on {{europe_land_pct|pc}} of the land.">
+<meta property="og:image" content="https://maps.tristanhotham.com/every-battle/header.png">
+<meta property="og:url" content="https://maps.tristanhotham.com/every-battle/">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800;9..144,900&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+/* Field map: parchment paper, iron ink, blood red. */
+:root{
+  --bg:#F6F3EC; --panel:#EAE5DA; --fg:#1F1D1A; --muted:#67635B; --rule:#DCD5C7; --card:#FFFDF8; --border:#C9C0AF;
+  --hot:#B3202A; --cool:#2F5F8A; --gold:#B08A2E; --ink:#3A2E22; --land:#E6E0D2; --sea:#E3E8EA;
+  --display:"Fraunces",Georgia,"Times New Roman",serif;
+  --body:"Source Serif 4",Georgia,"Times New Roman",serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#15130F; --panel:#211E19; --fg:#EEEAE2; --muted:#A8A196; --rule:#332F28; --card:#1A1814; --border:#4A443A;
+  --hot:#FF6B6B; --cool:#7DB0E0; --gold:#E2BE5A; --ink:#E0CDB4; --land:#27241F; --sea:#14181B; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#15130F; --panel:#211E19; --fg:#EEEAE2; --muted:#A8A196; --rule:#332F28; --card:#1A1814; --border:#4A443A;
+  --hot:#FF6B6B; --cool:#7DB0E0; --gold:#E2BE5A; --ink:#E0CDB4; --land:#27241F; --sea:#14181B; color-scheme:dark}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font:400 18px/1.62 var(--body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));overflow-x:hidden}
+.wrap{max-width:700px;margin:0 auto;padding-block:28px 64px}
+.wrap .bleed{width:min(1180px,calc(100vw - 32px));margin-left:calc((100% - min(1180px,100vw - 32px))/2);margin-right:0}
+a{color:inherit;text-decoration-color:var(--hot);text-underline-offset:3px}
+.kicker{font:500 12px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.kicker b{background:var(--hot);color:#fff;padding:5px 8px;font-weight:500}
+header.hero{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px 24px;align-items:end;border-bottom:6px double var(--fg);padding-bottom:22px;margin-top:18px}
+h1{font:900 clamp(44px,11vw,94px)/.9 var(--display);letter-spacing:-.02em;margin:0;text-wrap:balance}
+h1 .a{color:var(--hot)}
+.mark{width:clamp(78px,16vw,128px);height:auto;display:block;color:var(--fg)}
+.dek{grid-column:1/-1;font-size:21px;line-height:1.42;margin:8px 0 0;max-width:56ch}
+.byline{font:400 13px/1.4 var(--mono);color:var(--muted);margin-top:14px}
+h2{font:800 34px/1.04 var(--display);letter-spacing:-.01em;margin:54px 0 10px;text-wrap:balance}
+h2 .n{font:500 13px/1 var(--mono);color:var(--hot);display:block;letter-spacing:.1em;margin-bottom:10px}
+h3{font:600 21px/1.25 var(--display);margin:30px 0 6px}
+p{margin:0 0 16px}
+.lede::first-letter{font:900 72px/.8 var(--display);float:left;margin:6px 10px 0 0;color:var(--hot)}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--rule);border:1px solid var(--rule);margin:26px 0 8px}
+.stats div{background:var(--card);padding:14px 12px}
+.stats b{display:block;font:900 clamp(22px,4.4vw,32px)/1 var(--display);letter-spacing:-.01em}
+.stats b.h{color:var(--hot)} .stats b.c{color:var(--cool)} .stats b.g{color:var(--gold)} .stats b.p{color:var(--ink)}
+.stats span{font:400 12px/1.35 var(--mono);color:var(--muted);display:block;margin-top:6px}
+@media (max-width:600px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.figure{margin:26px 0 30px}
+.fig-h{font:600 19px/1.25 var(--display);margin:0 0 4px}
+.fig-sub{font:400 13px/1.45 var(--mono);color:var(--muted);margin:0 0 12px}
+.src{font:400 12px/1.45 var(--mono);color:var(--muted);margin-top:10px}
+.chart{width:100%;position:relative}
+.chart svg{display:block;width:100%;height:auto;overflow:visible}
+svg text{font-family:var(--mono);fill:var(--fg)}
+.lab{font-size:12px}.halo{paint-order:stroke;stroke:var(--bg);stroke-width:4px;stroke-linejoin:round}.lab.m{fill:var(--muted)}.lab.b{font-weight:500}.lab.s{font-size:11px}
+.tip{position:absolute;pointer-events:none;background:var(--fg);color:var(--bg);font:400 12px/1.45 var(--mono);padding:8px 10px;border-radius:3px;max-width:300px;z-index:100001;transform:translate(-50%,calc(-100% - 12px));display:none}
+.tip b{font-weight:500}
+.controls{display:flex;gap:8px;align-items:center;margin:0 0 10px;flex-wrap:wrap}
+.scrollrow{display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin;padding-bottom:2px;max-width:100%}
+.scrollrow .btn{flex:0 0 auto;white-space:nowrap}
+.ctl-l{font:500 11px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-right:2px;flex:0 0 auto;align-self:center}
+.btn{font:500 12px/1 var(--mono);background:var(--card);color:var(--fg);border:1px solid var(--border);border-radius:3px;padding:8px 10px;cursor:pointer;min-height:36px}
+.btn[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.btn i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px;border:1px solid rgba(0,0,0,.2)}
+.btn:focus-visible,input:focus-visible,summary:focus-visible,select:focus-visible{outline:2px solid var(--hot);outline-offset:2px}
+.btn.play{background:var(--hot);color:#fff;border-color:var(--hot);min-width:92px}
+select.btn{padding:6px 8px;max-width:100%}
+.searchbox{position:relative;flex:1 1 260px;min-width:0}
+input[type=search]{font:400 15px/1 var(--mono);background:var(--card);color:var(--fg);border:1px solid var(--border);border-radius:3px;padding:10px 11px;min-height:40px;width:100%}
+.suggest{position:absolute;left:0;right:0;top:100%;margin:2px 0 0;padding:0;list-style:none;background:var(--card);border:1px solid var(--border);z-index:1001;font:400 13px/1.3 var(--mono);display:none;max-height:340px;overflow:auto}
+.suggest li{padding:8px 10px;cursor:pointer;border-bottom:1px solid var(--rule)}
+.suggest li span{color:var(--muted)}
+.suggest li[aria-selected="true"],.suggest li:hover{background:var(--panel)}
+.yearbox{display:grid;grid-template-columns:auto auto minmax(0,1fr) auto;gap:10px;align-items:center;margin:0 0 4px;font:500 13px/1 var(--mono)}
+.yearbox .yv{font:800 20px/1 var(--display);min-width:5.4ch;text-align:center;white-space:nowrap}
+@media (max-width:600px){.yearbox{grid-template-columns:auto minmax(0,1fr) auto}.yearbox .play{grid-column:1/-1;justify-self:start}}
+.dual{position:relative;height:34px}
+.dual input[type=range]{position:absolute;left:0;right:0;top:4px;width:100%;pointer-events:none;-webkit-appearance:none;appearance:none;background:none;margin:0;height:26px}
+.dual input[type=range]::-webkit-slider-thumb{pointer-events:auto;-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:var(--hot);border:2px solid var(--card);cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.dual input[type=range]::-moz-range-thumb{pointer-events:auto;width:18px;height:18px;border-radius:50%;background:var(--hot);border:2px solid var(--card);cursor:pointer}
+.dual .track{position:absolute;left:0;right:0;top:15px;height:4px;background:var(--rule);border-radius:2px}
+.dual .fill{position:absolute;top:15px;height:4px;background:var(--hot);border-radius:2px}
+.ticks{position:relative;height:16px;margin:0 0 12px;font:400 10.5px/1 var(--mono);color:var(--muted)}
+.ticks span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.ticks span::before{content:"";position:absolute;left:50%;top:-5px;height:4px;border-left:1px solid var(--border)}
+@media (max-width:600px){.ticks span.o{display:none}}
+.mapgrid{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:14px;align-items:start}
+@media (max-width:900px){.mapgrid{grid-template-columns:1fr}}
+.side{background:var(--card);border:1px solid var(--border);padding:12px 12px 10px;font:400 13px/1.45 var(--mono);max-height:660px;overflow:auto}
+@media (max-width:900px){.side{max-height:none}}
+.side h4{font:500 11px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:14px 0 8px}
+.side h4:first-child{margin-top:2px}
+.side .big{font:800 26px/1.1 var(--display);margin:2px 0 4px}
+.side .sub{color:var(--muted);font-size:12px;margin:0 0 8px}
+.side ol,.side ul{margin:4px 0 8px;padding-left:20px}
+.side li{margin:3px 0}
+.side li small,.side td small{color:var(--muted)}
+.side table{width:100%;border-collapse:collapse;margin:4px 0 6px}
+.side td{padding:4px 4px 4px 0;border-bottom:1px solid var(--rule);vertical-align:top}
+.side td.num{text-align:right;white-space:nowrap}
+.back{font:400 12px var(--mono);background:none;border:0;color:var(--muted);padding:0;cursor:pointer;text-decoration:underline;margin-bottom:6px}
+.go{cursor:pointer;text-decoration:underline;text-decoration-color:var(--border);text-underline-offset:3px}
+.lmap{height:640px;border:1px solid var(--border);background:var(--sea);border-radius:2px}
+@media (max-width:600px){.lmap{height:min(62vh,470px)}}
+.leaflet-container{font:400 12px/1.4 var(--mono);background:var(--sea)}
+.dotcanvas{position:absolute;left:0;top:0;pointer-events:none}
+.lyrBtn{background:var(--card,var(--bg));color:var(--fg);border:1px solid var(--border);border-radius:3px;font:600 12px/1 var(--mono);padding:8px 10px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.12)}
+.lyrBtn[aria-expanded="true"]{background:var(--fg);color:var(--bg)}
+.lyrPanel{background:var(--card,var(--bg));color:var(--fg);border:1px solid var(--border);border-radius:3px;padding:10px 12px 8px;margin-top:6px;width:260px;box-shadow:0 2px 10px rgba(0,0,0,.15);font:400 12px/1.3 var(--mono);max-height:min(70vh,540px);overflow:auto}
+.lyrPanel[hidden]{display:none}
+.lyrPanel .row{margin:0 0 9px}
+.lyrPanel label{display:flex;gap:6px;align-items:center;cursor:pointer;font-weight:600}
+.lyrPanel input[type=range]{width:100%;accent-color:var(--fg)}
+.lyrPanel select{font:400 12px var(--mono);background:var(--bg);color:var(--fg);border:1px solid var(--border);border-radius:2px;padding:2px 4px;width:100%;min-height:0}
+.lyrPanel .sub{display:flex;gap:6px;align-items:center;color:var(--muted);font-size:11px;margin-top:3px}
+.lyrPanel .sub span{flex:0 0 58px}
+.lyrPanel .hd{font:500 10.5px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:10px 0 7px;border-top:1px solid var(--rule);padding-top:9px}
+.lyrPanel .reset{font:400 11px var(--mono);color:var(--muted);background:none;border:0;padding:0;cursor:pointer;text-decoration:underline}
+.cityL{font:500 11px/1 var(--mono);color:var(--fg);white-space:nowrap;text-shadow:0 0 3px var(--bg),0 0 3px var(--bg),0 0 2px var(--bg);pointer-events:none}
+.cityL i{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--fg);margin-right:4px;vertical-align:1px}
+.cityL.s{font-size:10px;font-weight:400}
+.cntL{font:700 11px/1 var(--mono);color:var(--fg);white-space:nowrap;text-transform:uppercase;letter-spacing:.06em;opacity:.75;text-shadow:0 0 3px var(--bg),0 0 3px var(--bg);pointer-events:none;text-align:center}
+.boxL{font:600 11px/1.2 var(--mono);color:var(--fg);white-space:nowrap;text-shadow:0 0 3px var(--bg),0 0 3px var(--bg),0 0 3px var(--bg);pointer-events:none}
+.zLow .regL .rf{display:none}
+.cenL{font:700 11px/1 var(--mono);color:#7A1016;white-space:nowrap;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 2px #fff;pointer-events:none}
+.mapnote{background:color-mix(in srgb,var(--card) 92%,transparent);border:1px solid var(--border);border-radius:3px;padding:6px 9px;font:400 12px/1.35 var(--mono);max-width:min(300px,62vw);box-shadow:0 1px 4px rgba(0,0,0,.12)}
+.mapnote b{font-weight:600}
+.mapnote:empty{display:none}
+.yearBadge{font:900 34px/1 var(--display);color:var(--fg);text-shadow:0 0 6px var(--bg),0 0 3px var(--bg);pointer-events:none;margin:6px 0 0 4px}
+.yearBadge small{display:block;font:500 12px/1.3 var(--mono);color:var(--fg);margin-top:4px}
+.yearBadge:empty{display:none}
+.leaflet-bar a,.leaflet-bar a:hover{background:var(--card);color:var(--fg);border-bottom-color:var(--border)}
+.leaflet-control-attribution{background:color-mix(in srgb,var(--card) 85%,transparent)!important;color:var(--muted)}
+.leaflet-control-attribution a{color:var(--fg)}
+.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:var(--card);color:var(--fg)}
+.leaflet-popup-content{font:400 12.5px/1.45 var(--mono);margin:10px 12px}
+.leaflet-popup-content b{font:700 15px/1.2 var(--display)}
+.legend{display:flex;gap:6px 14px;flex-wrap:wrap;font:400 12px/1.3 var(--mono);color:var(--muted);margin-top:8px;align-items:center}
+.legend span{display:inline-flex;align-items:center}
+.legend i{display:inline-block;width:13px;height:13px;margin-right:6px;border-radius:50%;border:1px solid rgba(0,0,0,.15)}
+.legend i.sq{border-radius:2px}
+.legend i.hx{border-radius:0;clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%);border:0;width:15px}
+.legend .ramp{display:inline-block;width:150px;height:12px;border-radius:2px;margin:0 6px;border:1px solid rgba(0,0,0,.1)}
+.pull{font:600 26px/1.25 var(--display);border-left:6px solid var(--hot);padding:4px 0 4px 18px;margin:30px 0}
+.note{background:var(--panel);border:1px solid var(--rule);padding:14px 16px;font-size:16px;margin:22px 0}
+.note h3{margin-top:0}
+table.tbl{width:100%;border-collapse:collapse;font:400 13px/1.4 var(--mono)}
+table.tbl th{font:500 11px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:left;padding:6px 6px 6px 0;border-bottom:2px solid var(--fg)}
+table.tbl td{padding:6px 6px 6px 0;border-bottom:1px solid var(--rule);vertical-align:top}
+table.tbl td.r,table.tbl th.r{text-align:right;white-space:nowrap}
+.tablebox{overflow:auto;border:1px solid var(--border);background:var(--card);padding:0 10px}
+.places{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (max-width:760px){.places{grid-template-columns:1fr}}
+.pbox{background:var(--card);border:1px solid var(--border);padding:10px 12px 8px}
+.pbox h4{font:800 18px/1.1 var(--display);margin:0 0 2px}
+.pbox p{font:400 11.5px/1.35 var(--mono);color:var(--muted);margin:0 0 8px}
+.prow{display:grid;grid-template-columns:22px minmax(0,1fr) 44px;gap:6px;align-items:start;font:400 12.5px/1.3 var(--mono);padding:5px 0;border-top:1px solid var(--rule);cursor:pointer}
+.prow:hover .nm{text-decoration:underline}
+.prow .k{color:var(--muted)} .prow .v{text-align:right;font-weight:500}
+.prow small{display:block;color:var(--muted);font-size:11px;margin-top:2px}
+.ebar{display:flex;height:7px;margin-top:4px;border-radius:2px;overflow:hidden;background:var(--rule)}
+.ebar i{display:block;height:100%}
+details{margin:14px 0}
+summary{font:500 13px/1.4 var(--mono);cursor:pointer;color:var(--fg);padding:8px 0}
+.cta{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}
+.cta a{font:500 13px/1 var(--mono);text-decoration:none;border:1px solid var(--fg);padding:11px 14px;border-radius:3px}
+.cta a.p{background:var(--hot);border-color:var(--hot);color:#fff}
+footer{border-top:6px double var(--fg);margin-top:56px;padding-top:16px;font:400 13px/1.55 var(--mono);color:var(--muted)}
+footer p{margin:0 0 10px}
+.theme{position:fixed;right:12px;bottom:12px;z-index:1002}
+@media print{.theme,.controls{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="kicker"><b>Data study</b><span>War and the record</span><span>World, 3001 BCE to 2026</span></div>
+<header class="hero">
+  <h1>Every battle <span class="a">in history</span></h1>
+  <svg class="mark" viewBox="0 0 120 120" aria-hidden="true"><g id="heroMark"></g></svg>
+  <p class="dek">Wikidata, the open database behind Wikipedia, knows of {{n|int}} battles. I put {{n_map|int}} of them on a map, from a legendary clash in {{first.year_text|raw}} to the fighting of 2026, and asked where war happened, century by century, which places have been fought over again and again, and how much the map is a record of war and how much a record of who wrote things down.</p>
+</header>
+<div class="byline">Dr Tristan Hotham · Independent researcher · 2026 · Data: Wikidata (CC0); English Wikipedia, List of battles by casualties (CC BY-SA 4.0); Natural Earth</div>
+
+<div class="stats">
+  <div><b class="p">{{n_map|int}}</b><span>battles with both a place and a date, out of {{n|int}} in Wikidata</span></div>
+  <div><b class="h">{{c19|int}}</b><span>in the {{peak_century.name|raw}}, the best recorded century; {{c20|int}} in the 20th</span></div>
+  <div><b class="g">{{flanders.n|int}}</b><span>battles in {{flanders.name|raw}}, the most fought-over region on the map</span></div>
+  <div><b class="c">{{europe_pct|pc}}</b><span>of mapped battles are in Europe, which has {{europe_land_pct|pc}} of the world's land</span></div>
+</div>
+
+<p class="lede">Every so often someone posts a map of "every battle in history", and it always looks the same: Europe ablaze, the Mediterranean outlined in fire, the eastern United States glowing with the Civil War, and much of Africa, Asia and the Americas oddly calm. That map is real, in the sense that it shows real data. But it is not a map of war. It is a map of which wars have been written up, in which languages, by which volunteers. I wanted to make the map properly, with the dates, and then look hard at what it can and cannot tell us.</p>
+<p>The data are every item in Wikidata that is an instance of "battle" or one of its subclasses: {{n|int}} items. {{n_xy|int}} have coordinates ({{n_own|int}} their own, the rest borrowed from the place they are said to have happened), and {{n_dated|int}} have a date. {{n_map|int}} have both, and those are the battles on this page.</p>
+
+<h2><span class="n">01 · The map</span>Five thousand years of battles</h2>
+<p>Each dot is one battle, coloured by era. The hexagons count battles on an equal-area grid, so a big hexagon in Siberia covers the same ground as one in Belgium. The time slider is stretched, because the record is: a few dozen battles survive from the second millennium BCE, thousands from the 19th century. Press play to step through time, from 500 years at a step in the ancient world to a decade at a step since 1800. Pick a war, a kind of event or a continent, or search for a battle, a war or a place.</p>
+<div class="bleed" id="atlas">
+<div class="yearbox"><button class="btn play" id="play" aria-label="Play through time">▶ Play</button><span class="yv" id="y0v"></span><div class="dual"><div class="track"></div><div class="fill" id="yfill"></div><input type="range" id="y0" min="0" max="1000" step="1" value="0" aria-label="From year"><input type="range" id="y1" min="0" max="1000" step="1" value="1000" aria-label="To year"></div><span class="yv" id="y1v"></span></div>
+<div class="ticks" id="ticks"></div>
+<div class="controls"><div class="scrollrow" id="eraRow"><span class="ctl-l">Era</span></div></div>
+<div class="controls">
+  <div class="scrollrow" id="viewRow"><span class="ctl-l">Show</span><button class="btn" data-v="both" aria-pressed="true">Dots and hexagons</button><button class="btn" data-v="dots" aria-pressed="false">Dots</button><button class="btn" data-v="hex" aria-pressed="false">Hexagons</button></div>
+  <div class="scrollrow" id="colRow"><span class="ctl-l">Colour</span><button class="btn" data-c="era" aria-pressed="true">Era</button><button class="btn" data-c="kind" aria-pressed="false">Kind</button><button class="btn" data-c="cont" aria-pressed="false">Continent</button></div>
+</div>
+<div class="controls"><div class="scrollrow" id="kindRow"><span class="ctl-l">Kind</span></div></div>
+<div class="controls">
+  <label class="ctl-l" for="warSel">War</label><select class="btn" id="warSel" aria-label="War or conflict"></select>
+  <label class="ctl-l" for="contSel">Continent</label><select class="btn" id="contSel" aria-label="Continent"></select>
+</div>
+<div class="controls">
+  <div class="searchbox"><input type="search" id="q" placeholder="Search a battle, a war, a place or a country" aria-label="Search a battle, a war, a place or a country" autocomplete="off"><ul class="suggest" id="sug" role="listbox"></ul></div>
+</div>
+<div class="controls"><div class="scrollrow" id="focusRow"><span class="ctl-l">Zoom to</span></div></div>
+<div class="mapgrid">
+  <div><div id="map" class="lmap" role="application" aria-label="Map of battles, 3001 BCE to 2026"></div>
+    <div class="legend" id="legend"></div></div>
+  <div class="side" id="side" aria-live="polite"></div>
+</div>
+<p class="src">Dots: {{n_map|int}} Wikidata battle items with coordinates and a date ({{n_own|int}} items have their own coordinates; for the rest the point is the place given as the battle's location, so it can be a town, a region or a sea). Years before 1 CE are BCE. Hexagons: equal-area grid in the Equal Earth projection, 60, 120 or 240 km across the corners depending on zoom (set it under Map layers); colours count the battles shown. Under Map layers: the most fought-over hexagons and regions, the centre of war century by century, and the deadliest battles in Wikipedia's list. Outlines: Natural Earth. Base map tiles © Esri.</p>
+</div>
+
+<h2><span class="n">02 · Battles per century</span>The record explodes after 1500</h2>
+<p>Wikidata's battles are not spread evenly through time. {{n_bce|int}} are dated before 1 CE. Only {{n_before_2000bce|int}} are older than 2000 BCE, and the oldest, the {{first.label|raw}} of Chinese legend, is placed in {{first.year_text|raw}}. From about 1000 CE the numbers climb, and after 1500 they take off: {{pct_since1500|pc}} of all dated battles happened after 1500, and {{pct_since1800|pc}} after 1800. The {{peak_century.name|raw}} is the best recorded century, with {{c19|int}} battles, just ahead of the 20th with {{c20|int}}. The single year with the most is {{peak_year|raw}} ({{peak_year_n|int}} battles), then 1863 ({{top_years.1.1|int}}), and the busiest decade is the {{peak_decade|raw}}s ({{peak_decade_n|int}}).</p>
+<div class="figure"><p class="fig-h">Battles per century, 13th century BCE to the 21st century</p><p class="fig-sub">Every dated battle. Coloured: the continent of mapped battles; grey: dated but not mapped. The 21st century so far covers 2001 to 2026. Hover a bar.</p>
+<div class="controls"><div class="scrollrow" id="cMode"><span class="ctl-l">As</span><button class="btn" data-m="n" aria-pressed="true">Battles</button><button class="btn" data-m="log" aria-pressed="false">Log scale</button><button class="btn" data-m="rate" aria-pressed="false">Per year</button><button class="btn" data-m="share" aria-pressed="false">Share by continent</button></div></div>
+<div class="chart" id="centChart"></div><div class="legend" id="centLegend"></div></div>
+<p>Counted per year rather than per century, the recent record is just as dense: {{c19_per_year|f1}} battles a year in the 19th century, {{c20_per_year|f1}} in the 20th and {{c21_per_year|f1}} so far in the 21st, from Iraq, Syria and the Sahel to Ukraine. That is not evidence that the world has become as warlike as it was in the age of Napoleon and the American Civil War. It is evidence that recent wars get written up on Wikipedia as they happen, battle by battle.</p>
+
+<h2><span class="n">03 · The centre of war</span>Two and a half thousand years round the Alps</h2>
+<p>Where is the middle of the world's recorded fighting? For each century with at least 20 mapped battles I found the point on the globe with the smallest total distance to all of them, a kind of median on a sphere. In {{n_centre_centuries|int}} centuries it has wandered remarkably little. It sits in Greece in the age of the Persian and Peloponnesian wars and moves to Italy with Rome. Then, from the 5th century to the 19th, in every century but one, it lies within 800 km of the middle of the Alps, drifting between northern Italy, Austria, Switzerland, southern Germany and France as the wars of medieval and early modern Europe dominate the record.</p>
+<div class="figure"><p class="fig-h">The centre of war, century by century</p><p class="fig-sub">The spherical median of each century's mapped battles (centuries with 20 or more), from the 6th century BCE (pale) to the 21st century (dark red). Hover a point for the century, the number of battles and how spread out they were.</p><div class="chart" id="centreChart"></div></div>
+<p>The departures are just as telling. In the 2nd and 3rd centuries CE the centre jumps east towards the Caucasus and the Caspian, because the record holds more battles from Han and Three Kingdoms China ({{centre_c3_asia_pct|pc}} of the 3rd century's mapped battles are in Asia) than from Rome, and the median of two clusters far apart lands between them; in the 3rd century half of all battles were more than {{centre_c3_km|int}} km from the centre. In the 7th century it moves to Syria with the Arab conquests. In the 20th it moves east to Romania, pulled by the Eastern Front, the Balkans and the Middle East. And in the 21st century it has left Europe for {{centre_c21_place|raw}}, {{centre_move_20_21_km|int}} km from where it stood in the 20th century: {{asia_pct_21|pc}} of this century's mapped battles are in Asia and {{africa_pct_21|pc}} in Africa.</p>
+<details><summary>Every century's centre</summary><div class="tablebox"><table class="tbl" id="centreTable"></table></div></details>
+
+<h2><span class="n">04 · The most fought-over places</span>Flanders, the Po valley and the Levant</h2>
+<p>To find the most fought-over ground I counted battles in equal-area hexagons of {{hex_km2|int}} km², about the size of Cyprus, and in regions of seven neighbouring hexagons ({{region_km2|int}} km², about twice the size of Belgium). The winner is not a surprise. {{flanders.name|raw}}, from Dunkirk and Ypres to Arras, Brussels and Antwerp, holds {{flanders.n|int}} battles across {{flanders.cent|int}} centuries: Caesar's war with the Belgae, the Battle of the Golden Spurs, the Eighty Years' War, Marlborough, Waterloo and two world wars. Its busiest single hexagon, {{hex_top.0.name|raw}}, has {{hex_top.0.n|int}}. Of all countries larger than 20,000 km², Belgium is the most fought-over for its size: {{belgium.n|int}} battles, {{belgium.per10k|f1}} for every 10,000 km².</p>
+<div class="figure"><p class="fig-h">The most fought-over places on Earth</p><p class="fig-sub">Left: regions of seven equal-area hexagons ({{region_km2|int}} km²), by battles. Right: single hexagons ({{hex_km2|int}} km²), by the number of different centuries with a battle. The coloured bar under each place shows its battles by era. Click a place to see it on the map.</p>
+<div class="places" id="places"></div><div class="legend" id="eraLegend"></div></div>
+<p>Counting how long a place has been fought over, rather than how often, gives a different answer. {{hex_cent.0.name|raw}} has battles in {{hex_cent.0.cent|int}} different centuries, from {{hex_cent.0.y0t|raw}} to {{hex_cent.0.y1t|raw}}, and in all eight of my eras; only {{hex_all_eras|int}} hexagons on Earth manage that, the other being Baghdad. Northern Italy is close behind: {{hex_cent.1.name|raw}} has {{hex_cent.1.cent|int}} centuries of battles, from the Gauls and Hannibal to Pavia, Marignano and Napoleon, and Rome {{hex_cent.2.cent|int}}. The Levant, the Po valley, Greece and the land between Rome and Naples have been fought over for as long as there have been records.</p>
+<p>Some of the busiest places are a warning about the data. The second busiest region is {{regions.1.name|raw}}, with {{regions.1.n|int}} battles, {{vendee_region_pct|pc}} of them from the War in the Vendée and the Chouannerie of the 1790s, which together have {{vendee|int}} battle items, more than the Thirty Years' War. They were bloody wars, but they are on the map in such detail because French Wikipedia editors have written up every skirmish. Dense local coverage also helps put the Welsh Marches, Catalonia and central Scotland near the top, and Japan's Kyoto and Osaka plain, the busiest place east of Iran.</p>
+<details><summary>Battles by modern country, and per 10,000 km²</summary><div class="tablebox"><table class="tbl" id="ctyTable"></table></div></details>
+
+<h2><span class="n">05 · The best-recorded wars</span>World wars, the American Civil War and the Vendée</h2>
+<p>{{pct_war|pc}} of the battles say which war they were part of. Wikidata often records a theatre or campaign rather than the war (the Second World War's battles are spread over {{ww2_recorded_as|int}} different "part of" values, from the Pacific War to Operation Overlord), so I grouped the theatres of the two world wars into the wars themselves. The Second World War has the most battles, {{ww2.n|int}}, then the First with {{ww1.n|int}} and the American Civil War with {{acw.n|int}}. The ten best-recorded wars hold {{wars_top10_pct|pc}} of all the battles that name a war.</p>
+<div class="figure"><p class="fig-h">The wars with the most battles in Wikidata</p><p class="fig-sub">Battle items per war (world war theatres grouped), coloured by the continent with most of its mapped battles. The number after each bar is the median number of Wikipedia language editions per battle. Click a war to show it on the map.</p><div class="chart" id="warChart"></div><div class="legend" id="warLegend"></div></div>
+<p>The list says as much about the record as about war. The American Revolutionary War has more battle items than the Napoleonic Wars proper, the Greek War of Independence more than the Hundred Years' War, and the Polish-Soviet War more than the Korean War. Apart from the Korean, Vietnam, Syrian and Afghan wars, all of the top 25 were fought in Europe or North America. No war in China, India or Africa makes the list.</p>
+
+<h2><span class="n">06 · Continents through time</span>From Europe and Asia to the whole world</h2>
+<p>Europe has {{europe_pct|pc}} of the mapped battles, Asia {{asia_pct|pc}}, Africa {{africa_pct|pc}}. Through time the balance shifts: Asia leads in the ancient record, Europe dominates from the classical age to the world wars, the Americas appear with the colonial wars and dominate the 19th century ({{pct_americas_19|pc}} of its mapped battles, with the wars of Latin American independence and the American Civil War), and since 1946 Asia and Africa have most of them. In the 21st century Europe has only {{europe_pct_21|pc}}.</p>
+<div class="figure"><p class="fig-h">Where the battles were, by century</p><p class="fig-sub">Share of each century's mapped battles by continent (centuries with 20 or more). Naval battles count for the continent of the nearest land; Russia west of the Urals is Europe. Hover a bar.</p><div class="chart" id="contChart"></div><div class="legend" id="contLegend"></div></div>
+
+<h2><span class="n">07 · How skewed is the record?</span>A map of who wrote things down</h2>
+<p>Very. Europe has {{europe_land_pct|pc}} of the world's land outside Antarctica and {{europe_pct|pc}} of the mapped battles, {{europe_x_land|f1}} times its share. Some of that is real: Europe was crowded, divided and constantly at war. But much of it is the record. Wikidata grows out of Wikipedia, and Wikipedia's battle articles are written mostly in European languages, from European and American histories. A battle between two West African kingdoms in the 17th century, or two Indian states in the 12th, is far less likely to have an article, an item, coordinates and a date.</p>
+<div class="figure"><p class="fig-h">Famous old battles, many obscure new ones</p><p class="fig-sub">Every dated battle: its year (stretched scale, as on the map) against the number of Wikipedia language editions that cover it (log scale; 0 shown at the bottom). Lines: median and 90th percentile by century. Hover a point.</p><div class="chart" id="slChart"></div><div class="legend" id="slLegend"></div></div>
+<p>The sitelinks, the number of Wikipedia language editions that have an article on a battle, show the other side of the bias. The median battle has {{sitelinks_median|int}}; {{pct_sl_le1|pc}} have one or none. Ancient battles that survive in the record tend to be famous (median {{sl_med_ancient|int}} editions before 500 CE), because only famous ones were written about at all, while the modern record is full of small, obscure actions known in one language (median {{sl_med_modern|int}} since 1800). The most widely covered battle is {{most_linked.0.label|raw}} ({{most_linked.0.sl|int}} editions), then {{most_linked.1.label|raw}} ({{most_linked.1.sl|int}}) and {{most_linked.2.label|raw}} ({{most_linked.2.sl|int}}).</p>
+<h3>What counts as a battle</h3>
+<p>Wikidata's "battle" class is broad and inconsistent. Only {{kinds.0.pct|pc}} of the items are called a battle in their English label. The rest are sieges, skirmishes, raids, attacks, assaults, landings, massacres, operations and offensives (below), and {{pct_nolabel|pc}} have no English label at all. And many famous fights are missing, because they are typed as a siege, an offensive or a military operation rather than a battle: of the {{cas.n|int}} rows in Wikipedia's list of battles by casualties I could match only {{cas.matched|int}} ({{cas.matched_pct|pc}}) to a Wikidata battle, and the unmatched ones include Operation Barbarossa, the Siege of Leningrad and the Battle of the Bulge.</p>
+<div class="figure"><p class="fig-h">What the battle items are called</p><p class="fig-sub">All {{n|int}} items, by the first matching word in the English label.</p><div class="chart" id="kindChart"></div></div>
+<p>The deadliest battles tell the same story from the other side. Of the {{cas.mapped|int}} entries of Wikipedia's casualty list I could map, {{cas.europe_pct|pc}} are in Europe and {{cas.asia_pct|pc}} in Asia, though the list includes the An Lushan rebellion and the Taiping war, and Asia has had most of the world's people for all of recorded history. Turn on "Deadliest battles" under Map layers to see them; the casualty figures are Wikipedia's own high estimates, often disputed.</p>
+<p class="pull">The map of every battle is a map of war, but it is also a map of whose wars got written down, and in which language.</p>
+
+<h2><span class="n">08 · How I did this</span>Methods and caveats</h2>
+<p><b>Battles.</b> Every Wikidata item that is an instance of battle (Q178561) or of any subclass of it, with its English label, number of Wikipedia sitelinks, coordinates (P625), location (P276) and its coordinates, point in time (P585), start time (P580) and "part of" (P361), fetched through the QLever endpoint in 2026. The query returns {{n_rows|int}} rows, one per combination of location and war, which I reduced to {{n|int}} items. Coordinates are the item's own where it has them, otherwise those of its location (the location nearest the middle of its locations, when there are several). The year is the earliest point in time, otherwise the earliest start time; years before 1 CE use Wikidata's astronomical numbering (year 0 is 1 BCE) and are shown as BCE. Centuries are ordinal (the 19th century is 1801 to 1900), which also places dates that Wikidata stores only to the century, such as "1300" for the 13th century, in the right one. The export does not give the precision of a date, so some ancient years are only approximate.</p>
+<p><b>Places.</b> Country and continent come from Natural Earth outlines: the country the point is in, or the nearest country within 400 km for battles at sea ({{n_sea|int}} mapped battles; {{n_ocean|int}} far out in the ocean have no continent). Russia west of the Urals and Turkey west of the Bosporus count as Europe. Hexagons are on an equal-area grid in the Equal Earth projection, so they can be compared anywhere. The centre of war is the spherical geometric median of each century's battles. <b>Wars</b> are the "part of" value with the most battles, with theatres and campaigns of the two world wars grouped into the wars (inside 1914 to 1918 and 1939 to 1945). <b>Kinds</b> come from the first matching word in the English label. <b>Casualties</b>: the five tables of Wikipedia's "List of battles by casualties", matched to Wikidata by label and year (within three years).</p>
+<p><b>What this is not.</b> It is not a count of all the battles ever fought, nor of how violent each age or place was. It is a count of Wikidata items, which reflect Wikipedia's coverage: heavily European and modern, generous to some wars (the Vendée, the American Civil War) and silent on others. Points can be approximate, borrowed from a town or a region; some items are legendary; and Wikidata's classes are inconsistent, so the same kind of event can be in or out depending on how an editor typed it.</p>
+<details><summary>Sources and licences</summary>
+<ul>
+<li>Wikidata contributors (2026) Items that are instances of battle (Q178561) and its subclasses, via the QLever SPARQL endpoint (<a href="https://qlever.cs.uni-freiburg.de/wikidata">qlever.cs.uni-freiburg.de</a>). <a href="https://www.wikidata.org/">Wikidata</a> is CC0.</li>
+<li>Wikipedia contributors (2026) <a href="https://en.wikipedia.org/wiki/List_of_battles_by_casualties">List of battles by casualties</a>, English Wikipedia, revision {{cas.revid|raw}}. CC BY-SA 4.0; the parsed and matched table (data/casualties.csv) is shared under the same licence.</li>
+<li>Natural Earth countries and populated places (public domain). Base map tiles © Esri.</li>
+</ul></details>
+
+<div class="cta"><a class="p" href="https://doi.org/10.5281/zenodo.23857870">Read the paper</a><a href="https://github.com/Tristan-Hotham/every-battle">Data and code</a><a href="https://blog.tristanhotham.com/2026/10/31/every-battle/">Blog post</a></div>
+
+<footer>
+<p>Dr Tristan Hotham, Independent researcher. ORCID <a href="https://orcid.org/0000-0003-4931-9349">0000-0003-4931-9349</a>.</p>
+<p>Cite as: Hotham, T. (2026) Every battle in history: five thousand years of battles in Wikidata, where war happened and how skewed the record is. Zenodo. <a href="https://doi.org/10.5281/zenodo.23857870">https://doi.org/10.5281/zenodo.23857870</a></p>
+<p>Data: Wikidata (CC0); English Wikipedia (CC BY-SA 4.0); Natural Earth. Licence: text, figures and derived data CC BY 4.0, except the casualty table, which is derived from Wikipedia and shared under CC BY-SA 4.0; code MIT.</p>
+<p>I wrote the text, with drafting and editing assistance from Claude (Anthropic), which also helped prepare the analysis code. I reviewed and checked all text and results.</p>
+</footer>
+</div>
+<div class="tip" id="tip"></div>
+<button class="btn theme" id="theme" aria-label="Toggle dark mode">◐</button>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+const R = /*RESULTS*/;
+const SITE = /*SITE*/;
+const WORLD = /*WORLD*/;
+const CITIES = /*CITIES*/;
+const fmt = n => n == null || n === "" ? "n/a" : Math.round(n).toLocaleString("en-GB");
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const tip = document.getElementById("tip");
+function showTip(h, x, y) { tip.innerHTML = h; tip.style.display = "block"; const w = tip.offsetWidth; x = Math.max(w / 2 + 8, Math.min(innerWidth - w / 2 - 8, x)); tip.style.left = x + scrollX + "px"; tip.style.top = y + scrollY + "px"; }
+function hideTip() { tip.style.display = "none"; }
+document.addEventListener("click", hideTip);
+const NS = "http://www.w3.org/2000/svg";
+const el = (t, a, p) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); if (p) p.appendChild(e); return e; };
+const lbl = (svg, x, y, s, cls = "lab", anchor = "start") => { const t = el("text", { x, y, class: cls, "text-anchor": anchor }, svg); t.textContent = s; return t; };
+const redraws = [];
+function resp(box, render) { let last = 0; const go = force => { const w = Math.max(280, Math.round(box.clientWidth)); if (!force && Math.abs(w - last) < 4) return; last = w; box.innerHTML = ""; render(w, w < 560); }; new ResizeObserver(() => go()).observe(box); go(); redraws.push(() => go(true)); return () => go(true); }
+const isDark = () => { const r = document.documentElement; return r.dataset.theme ? r.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches; };
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const small = () => innerWidth < 900;
+const CONTS = SITE.conts, ERAS = SITE.eras, ESHORT = SITE.eshort, ECOL = SITE.ecol, KINDS = SITE.kinds, KCOL = SITE.kcol, CONF = SITE.conflicts;
+const yt = y => y <= 0 ? (1 - y) + " BCE" : String(y);
+const ord = n => { n = Math.abs(n); const s = (n % 100 >= 10 && n % 100 <= 20) ? "th" : ({ 1: "st", 2: "nd", 3: "rd" }[n % 10] || "th"); return n + s; };
+const cnm = c => ord(c) + " century" + (c < 0 ? " BCE" : "");
+const centOf = y => y >= 1 ? Math.floor((y - 1) / 100) + 1 : -(Math.floor((1 - y - 1) / 100) + 1);
+const eraOf = y => { for (let i = 0; i < ERAS.length; i++) if (y >= ERAS[i][1] && y <= ERAS[i][2]) return i; return 0; };
+
+/* stretched time scale: slider position 0 to 1000 against astronomical year */
+const KN = [[0, -3000], [90, -1000], [230, -300], [380, 500], [540, 1300], [690, 1700], [820, 1850], [1000, 2026]];
+const p2y = p => { for (let i = 1; i < KN.length; i++) if (p <= KN[i][0]) { const [a, ya] = KN[i - 1], [b, yb] = KN[i]; return Math.round(ya + (yb - ya) * (p - a) / (b - a)); } return 2026; };
+const y2p = y => { for (let i = 1; i < KN.length; i++) if (y <= KN[i][1]) { const [a, ya] = KN[i - 1], [b, yb] = KN[i]; return a + (b - a) * (y - ya) / (yb - ya); } return 1000; };
+const Y0 = -3000, Y1 = 2026;
+
+/* hero mark: crossed swords over a hexagon */
+(function () {
+  const g = document.getElementById("heroMark");
+  el("path", { d: "M60 8 L104 33 L104 85 L60 110 L16 85 L16 33 Z", fill: "none", stroke: "currentColor", "stroke-width": 2.4, opacity: .35 }, g);
+  const sword = (rot, col) => { const s = el("g", { transform: `rotate(${rot} 60 60)` }, g);
+    el("path", { d: "M57 14 L63 14 L63 78 L57 78 Z", fill: col, stroke: "currentColor", "stroke-width": 2 }, s);
+    el("path", { d: "M57 14 L60 6 L63 14", fill: col, stroke: "currentColor", "stroke-width": 2, "stroke-linejoin": "round" }, s);
+    el("path", { d: "M46 78 L74 78", stroke: "currentColor", "stroke-width": 5, "stroke-linecap": "round" }, s);
+    el("path", { d: "M60 80 L60 96", stroke: "currentColor", "stroke-width": 5 }, s);
+    el("circle", { cx: 60, cy: 100, r: 4.5, fill: "currentColor" }, s); };
+  sword(-38, "#B3202A"); sword(38, "#E6E0D2");
+})();
+
+/* ---------- map machinery ---------- */
+const ESRI = "https://server.arcgisonline.com/ArcGIS/rest/services/";
+const ESRI_ATT = 'Tiles &copy; Esri, HERE, Garmin, USGS, NGA, EPA, NPS, and other contributors';
+const LYDEF = { base: "plain", hills: true, hillK: 35, labels: true, labelK: 70, names: true, nameLvl: 1, cnames: false, borders: true, topHex: false, topReg: false, centre: false, cas: false, size: 2.4, slSize: false, hexSize: "auto", hexK: 75 };
+const LY = { ...LYDEF };
+try { Object.assign(LY, JSON.parse(localStorage.getItem("bat_layers") || "{}")); } catch (e) {}
+const saveLY = () => { try { localStorage.setItem("bat_layers", JSON.stringify(LY)); } catch (e) {} };
+const HOME = () => small() ? [[38, 20], 1.5] : [[35, 15], 2];
+const map = L.map("map", { minZoom: 1, maxZoom: 14, maxBounds: [[-80, -220], [85, 220]], zoomSnap: .5, worldCopyJump: false }).setView(...HOME());
+["hills:250", "fill:400", "labels:450", "pts:600", "over:610", "names:620"].forEach(s => { const [n, z] = s.split(":"); map.createPane(n); map.getPane(n).style.zIndex = z; });
+["hills", "labels", "names", "pts", "fill"].forEach(n => map.getPane(n).style.pointerEvents = "none");
+let base = null, hills = null, labels = null; const names = L.layerGroup(), cnames = L.layerGroup(), topHexL = L.layerGroup(), topRegL = L.layerGroup(), centreL = L.layerGroup(), casL = L.layerGroup();
+function setTiles() {
+  [base, labels, hills].forEach(l => { if (l) map.removeLayer(l); });
+  const t = isDark() ? "Dark" : "Light";
+  const url = LY.base === "ocean" ? ESRI + "Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}" : LY.base === "relief" ? ESRI + "World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}" : LY.base === "satellite" ? ESRI + "World_Imagery/MapServer/tile/{z}/{y}/{x}" : LY.base === "topo" ? ESRI + "World_Topo_Map/MapServer/tile/{z}/{y}/{x}" : `${ESRI}Canvas/World_${t}_Gray_Base/MapServer/tile/{z}/{y}/{x}`;
+  base = L.tileLayer(url, { maxZoom: 16, maxNativeZoom: LY.base === "relief" || LY.base === "ocean" ? 13 : 16, attribution: ESRI_ATT }).addTo(map);
+  hills = L.tileLayer(ESRI + "Elevation/World_Hillshade/MapServer/tile/{z}/{y}/{x}", { maxZoom: 16, maxNativeZoom: 16, pane: "hills" });
+  labels = L.tileLayer(LY.base === "ocean" ? ESRI + "Ocean/World_Ocean_Reference/MapServer/tile/{z}/{y}/{x}" : `${ESRI}Canvas/World_${t}_Gray_Reference/MapServer/tile/{z}/{y}/{x}`, { maxZoom: 16, maxNativeZoom: 13, pane: "labels" });
+  applyLayers();
+}
+function applyLayers() {
+  if (!base) return;
+  if (LY.hills) { hills.addTo(map); hills.setOpacity(Math.min(1, .1 + LY.hillK / 120)); } else map.removeLayer(hills);
+  if (LY.labels) { labels.addTo(map); labels.setOpacity(LY.labelK / 100); } else map.removeLayer(labels);
+  [[LY.names, names], [LY.cnames, cnames], [LY.topHex, topHexL], [LY.topReg, topRegL], [LY.centre, centreL], [LY.cas, casL]].forEach(([on, l]) => on ? l.addTo(map) : map.removeLayer(l));
+  if ((LY.topHex || LY.topReg) && !HEXD) loadHex();
+  if (LY.cas && !CAS) loadCas();
+  cLayer.setStyle(cStyle()); placeNames(); dots.draw();
+}
+function placeNames() {
+  names.clearLayers(); cnames.clearLayers();
+  const z = map.getZoom(), bb = map.getBounds().pad(.05); const bxs = [];
+  if (LY.names) {
+    const minPop = [[2, 8e6], [3, 3e6], [4, 1e6], [5, 4e5], [6, 1.5e5], [7, 6e4], [99, 2e4]].find(([zz]) => z < zz + (LY.nameLvl === 2 ? 1.5 : LY.nameLvl === 0 ? -1 : 0))[1] * (LY.nameLvl === 0 ? 2 : 1);
+    let n = 0;
+    for (const c of CITIES) {
+      if (c.pop < minPop || !bb.contains([c.lat, c.lon])) continue;
+      const pt = map.latLngToContainerPoint([c.lat, c.lon]), big = c.pop >= 5e6;
+      const bx = [pt.x - 4, pt.y - 8, pt.x + 10 + c.name.length * (big ? 6.9 : 6.3), pt.y + 7];
+      if (bxs.some(o => bx[0] < o[2] && bx[2] > o[0] && bx[1] < o[3] && bx[3] > o[1])) continue;
+      bxs.push(bx); L.marker([c.lat, c.lon], { pane: "names", interactive: false, keyboard: false, icon: L.divIcon({ className: "cityL" + (big ? "" : " s"), html: `<i></i>${esc(c.name)}`, iconSize: null, iconAnchor: [3, 6] }) }).addTo(names);
+      if (++n >= 120) break;
+    }
+  }
+  if (LY.cnames && z >= 3 && z < 7) {
+    WORLD.features.forEach(f => { const g = SITE.cpos[f.properties.iso]; if (!g || !bb.contains([g[1], g[0]])) return; const nm = SITE.cname[f.properties.iso] || "";
+      if (z < 4 && (g[2] || 0) < 2e7) return; const pt = map.latLngToContainerPoint([g[1], g[0]]), w = nm.length * 7.2;
+      const bx = [pt.x - w / 2, pt.y - 7, pt.x + w / 2, pt.y + 7]; if (bxs.some(o => bx[0] < o[2] && bx[2] > o[0] && bx[1] < o[3] && bx[3] > o[1])) return; bxs.push(bx);
+      L.marker([g[1], g[0]], { pane: "names", interactive: false, keyboard: false, icon: L.divIcon({ className: "cntL", html: esc(nm), iconSize: [w, 14], iconAnchor: [w / 2, 7] }) }).addTo(cnames); });
+  }
+}
+(function layerControl() {
+  const Ctl = L.Control.extend({ options: { position: "topright" }, onAdd() {
+    const d = L.DomUtil.create("div"); L.DomEvent.disableClickPropagation(d); L.DomEvent.disableScrollPropagation(d);
+    d.innerHTML = `<button class="lyrBtn" aria-expanded="false">Map layers</button>
+<div class="lyrPanel" hidden>
+ <div class="row"><label style="font-weight:600">Base map</label><div class="sub"><select data-k="base" aria-label="Base map"><option value="plain">Plain grey</option><option value="topo">Topographic</option><option value="relief">Shaded relief</option><option value="ocean">Sea depth</option><option value="satellite">Satellite</option></select></div></div>
+ <div class="row"><label><input type="checkbox" data-k="hills"> Hill shading</label><div class="sub"><span>strength</span><input type="range" data-k="hillK" min="10" max="100" step="5" aria-label="Hill shading strength"></div></div>
+ <div class="row"><label><input type="checkbox" data-k="labels"> Place labels</label><div class="sub"><span>strength</span><input type="range" data-k="labelK" min="20" max="100" step="5" aria-label="Map label strength"></div></div>
+ <div class="row"><label><input type="checkbox" data-k="names"> Bold town names</label><div class="sub"><span>how many</span><select data-k="nameLvl" aria-label="How many town names"><option value="0">Biggest only</option><option value="1">Some</option><option value="2">Lots</option></select></div></div>
+ <div class="row"><label><input type="checkbox" data-k="cnames"> Country names</label></div>
+ <div class="row"><label><input type="checkbox" data-k="borders"> Borders (today)</label></div>
+ <div class="hd">Study layers</div>
+ <div class="row"><label><input type="checkbox" data-k="topReg"> Most fought-over regions (15)</label></div>
+ <div class="row"><label><input type="checkbox" data-k="topHex"> Most fought-over hexagons (20)</label></div>
+ <div class="row"><label><input type="checkbox" data-k="centre"> Centre of war, by century</label></div>
+ <div class="row"><label><input type="checkbox" data-k="cas"> Deadliest battles (Wikipedia list)</label></div>
+ <div class="row"><label style="font-weight:600">Dots</label><div class="sub"><span>size</span><input type="range" data-k="size" min="1" max="6" step=".5" aria-label="Dot size"></div><label style="font-weight:400;margin-top:4px"><input type="checkbox" data-k="slSize"> Size by Wikipedia editions</label></div>
+ <div class="row"><label style="font-weight:600">Hexagons</label><div class="sub"><span>size</span><select data-k="hexSize" aria-label="Hexagon size"><option value="auto">Change with zoom</option><option value="60">60 km</option><option value="120">120 km</option><option value="240">240 km</option></select></div><div class="sub"><span>strength</span><input type="range" data-k="hexK" min="20" max="100" step="5" aria-label="Hexagon strength"></div></div>
+ <button class="reset">Reset layers</button>
+</div>`;
+    return d; } });
+  map.addControl(new Ctl());
+  const box = map.getContainer(), btn = box.querySelector(".lyrBtn"), pan = box.querySelector(".lyrPanel");
+  btn.onclick = () => { const o = pan.hidden; pan.hidden = !o; btn.setAttribute("aria-expanded", o); };
+  const sync = () => pan.querySelectorAll("[data-k]").forEach(i => { const k = i.dataset.k; if (i.type === "checkbox") i.checked = LY[k]; else i.value = LY[k]; });
+  pan.querySelectorAll("[data-k]").forEach(i => i.addEventListener(i.type === "range" ? "input" : "change", () => {
+    const k = i.dataset.k; LY[k] = i.type === "checkbox" ? i.checked : (k === "base" || k === "hexSize" ? i.value : +i.value);
+    if (k === "hillK") LY.hills = true; if (k === "labelK") LY.labels = true; if (k === "nameLvl") LY.names = true;
+    sync(); saveLY(); if (k === "base") setTiles(); else applyLayers(); legend();
+  }));
+  pan.querySelector(".reset").onclick = () => { Object.assign(LY, LYDEF); saveLY(); sync(); setTiles(); legend(); };
+  sync();
+})();
+const Badge = L.Control.extend({ options: { position: "topleft" }, onAdd() { const d = L.DomUtil.create("div", "yearBadge"); d.id = "badge"; return d; } });
+map.addControl(new Badge());
+const Note = L.Control.extend({ options: { position: "bottomleft" }, onAdd() { const d = L.DomUtil.create("div", "mapnote"); d.id = "mapnote"; L.DomEvent.disableClickPropagation(d); return d; } });
+map.addControl(new Note());
+L.control.scale({ imperial: false, position: "bottomright" }).addTo(map);
+
+/* centre of war layer */
+(function () {
+  const C = R.centres, pts = C.map(c => [c.lat, c.lon]);
+  L.polyline(pts, { pane: "over", color: "#7A1016", weight: 2.4, opacity: .85, dashArray: "6 4", interactive: false }).addTo(centreL);
+  C.forEach((c, i) => { const t = i / (C.length - 1), col = `rgb(${Math.round(240 - 118 * t)},${Math.round(190 - 174 * t)},${Math.round(150 - 128 * t)})`;
+    L.circleMarker([c.lat, c.lon], { pane: "over", radius: 6, color: "#fff", weight: 1.5, fillColor: col, fillOpacity: 1 }).bindPopup(`<b>Centre of war, ${esc(c.name)}</b><br>${fmt(c.n)} mapped battles; in or near ${esc(c.place)}<br>Half of them within ${fmt(c.median_km)} km of this point`).addTo(centreL);
+    if ([-5, -1, 2, 7, 15, 19, 20, 21].includes(c.c)) L.marker([c.lat, c.lon], { pane: "names", interactive: false, icon: L.divIcon({ className: "cenL", html: esc(c.short), iconSize: null, iconAnchor: [-8, 6] }) }).addTo(centreL); });
+})();
+
+/* ---------- state ---------- */
+const S = { col: "era", view: "both", y0: Y0, y1: Y1, kind: new Set(KINDS.map((t, i) => i)), cont: -2, war: -1, met: null, playing: false };
+function cStyle() { return { color: css("--border") || "#999", weight: LY.borders ? .6 : 0, fillColor: css("--land"), fillOpacity: 0, interactive: false }; }
+const cLayer = L.geoJSON(WORLD, { pane: "fill", style: cStyle, interactive: false }).addTo(map);
+
+/* ---------- hexagons and dots on one canvas ---------- */
+let P = null, HEXD = null, CAS = null, Z = -1, XY = null, VIS = new Int32Array(0), NV = 0, CNT = null, HEX = null;
+const keep = p => S.kind.has(p[3]) && (S.cont === -2 || p[4] === S.cont) && (S.war < 0 || p[6] === S.war) && p[2] >= S.y0 && p[2] <= S.y1;
+const colOf = p => S.col === "kind" ? KCOL[p[3]] : S.col === "cont" ? (p[4] >= 0 ? CONTS[p[4]][1] : "#8C8C8C") : ECOL[eraOf(p[2])];
+const HEXR = [[255, 241, 205], [250, 200, 120], [236, 136, 66], [204, 66, 44], [140, 20, 36], [62, 8, 24]];
+function loadHex() { fetch("data/hexes.json").then(r => r.json()).then(j => { HEXD = j; drawTops(); dots.draw(); }); }
+function loadCas() { fetch("data/casualties_map.json").then(r => r.json()).then(j => { CAS = j.rows; drawCas(); }); }
+if (LY.topHex || LY.topReg) loadHex();
+function drawTops() {
+  topHexL.clearLayers(); topRegL.clearLayers();
+  HEXD.top.hex.forEach((h, i) => { L.polygon(h.ring, { pane: "over", color: "#1F1D1A", weight: 2, fill: false, dashArray: "1 0" }).bindPopup(`<b>${i + 1}. ${esc(h.name)}</b><br>${fmt(h.n)} battles in ${h.cent} centuries<br>One equal-area hexagon of ${fmt(R.hex_km2)} km²`).addTo(topHexL);
+    const c = h.ring.reduce((a, b) => [a[0] + b[0] / 6, a[1] + b[1] / 6], [0, 0]); L.marker(c, { pane: "names", interactive: false, icon: L.divIcon({ className: "boxL", html: String(i + 1), iconSize: null, iconAnchor: [4, 7] }) }).addTo(topHexL); });
+  HEXD.top.regions.forEach((h, i) => { L.polygon(h.ring, { pane: "over", color: "#B3202A", weight: 2.4, fillColor: "#B3202A", fillOpacity: .06 }).bindPopup(`<b>${i + 1}. ${esc(h.name)}</b><br>${fmt(h.n)} battles in ${h.cent} centuries<br>Seven equal-area hexagons, ${fmt(R.region_km2)} km²`).addTo(topRegL);
+    const lat = Math.max(...h.ring.map(p => p[0])), lon = h.ring.reduce((a, b) => a + b[1] / h.ring.length, 0);
+    L.marker([lat, lon], { pane: "names", interactive: false, icon: L.divIcon({ className: "boxL regL", html: `<span>${i + 1}</span><span class="rf">. ${esc(h.name)}</span>`, iconSize: null, iconAnchor: [6, 16] }) }).addTo(topRegL); });
+}
+function drawCas() {
+  casL.clearLayers();
+  CAS.forEach(r => { const [la, lo, nm, y, tb, c, cf] = r; const rad = Math.max(3, Math.sqrt(c || 0) / 22);
+    L.circleMarker([la, lo], { pane: "over", radius: rad, color: "#5A0A10", weight: 1.2, fillColor: "#B3202A", fillOpacity: .25 })
+      .bindPopup(`<b>${esc(nm)}</b><br>${esc(y)} · ${esc(cf)}<br>${esc(tb)} in Wikipedia's list of battles by casualties<br>Highest casualty figure given: ${fmt(c)}`).addTo(casL); });
+}
+const hexSz = () => LY.hexSize !== "auto" ? LY.hexSize : (map.getZoom() < 3.5 ? "240" : map.getZoom() < 5.5 ? "120" : "60");
+const Dots = L.Layer.extend({
+  onAdd(m) { this._c = L.DomUtil.create("canvas", "dotcanvas"); m.getPane("pts").appendChild(this._c); m.on("moveend zoomend resize viewreset", this._reset, this); m.on("zoomstart", () => this._c.style.opacity = 0); this._reset(); },
+  onRemove(m) { L.DomUtil.remove(this._c); m.off("moveend zoomend resize viewreset", this._reset, this); },
+  _reset() { const s = map.getSize(), d = devicePixelRatio || 1; L.DomUtil.setPosition(this._c, map.containerPointToLayerPoint([0, 0])); this._c.width = s.x * d; this._c.height = s.y * d; this._c.style.width = s.x + "px"; this._c.style.height = s.y + "px"; this._c.style.opacity = 1; this.draw(); },
+  draw() {
+    if (!this._c) return; const ctx = this._c.getContext("2d"), d = devicePixelRatio || 1; ctx.setTransform(d, 0, 0, d, 0, 0); ctx.clearRect(0, 0, this._c.width, this._c.height); NV = 0; HEX = null;
+    if (!P) return;
+    const z = map.getZoom(), sz = map.getSize(), dark = isDark();
+    if (z !== Z) { Z = z; XY = new Float32Array(P.length * 2); P.forEach((p, i) => { const q = map.project([p[0], p[1]], z); XY[2 * i] = q.x; XY[2 * i + 1] = q.y; }); VIS = new Int32Array(P.length); }
+    const o = map.getPixelOrigin(), off = map.containerPointToLayerPoint([0, 0]), ox = o.x + off.x, oy = o.y + off.y;
+    CNT = { n: 0, k: KINDS.map(() => 0), c: CONTS.map(() => 0), w: new Map(), all: [] };
+    const hk = { "60": 10, "120": 11, "240": 12 }[hexSz()], H = new Map();
+    for (let i = 0; i < P.length; i++) {
+      const p = P[i]; if (!keep(p)) continue;
+      CNT.n++; CNT.k[p[3]]++; if (p[4] >= 0) CNT.c[p[4]]++; if (p[6] >= 0) CNT.w.set(p[6], (CNT.w.get(p[6]) || 0) + 1);
+      if (S.view !== "dots") H.set(p[hk], (H.get(p[hk]) || 0) + 1);
+      const x = XY[2 * i] - ox, yy = XY[2 * i + 1] - oy; if (x < -40 || yy < -40 || x > sz.x + 40 || yy > sz.y + 40) continue;
+      VIS[NV++] = i;
+    }
+    if (S.view !== "dots" && HEXD) {
+      const rings = HEXD.rings[hexSz()]; let mx = 4; for (const v of H.values()) if (v > mx) mx = v;
+      HEX = { H, rings, mx, key: hk, paths: [] };
+      const al = LY.hexK / 100 * (S.view === "both" ? .78 : 1);
+      for (const [id, n] of H) { const rg = rings[id]; let lo0 = 999, lo1 = -999; for (let k = 1; k < 12; k += 2) { lo0 = Math.min(lo0, rg[k]); lo1 = Math.max(lo1, rg[k]); } if (lo1 - lo0 > 90) continue;
+        const pts = []; let out = true; for (let k = 0; k < 12; k += 2) { const q = map.latLngToContainerPoint([rg[k], rg[k + 1]]); pts.push(q); if (q.x > -60 && q.y > -60 && q.x < sz.x + 60 && q.y < sz.y + 60) out = false; }
+        if (out) continue; HEX.paths.push([pts, id, n]);
+        const t = Math.log(1 + n) / Math.log(1 + mx), s = t * (HEXR.length - 1), a = Math.min(HEXR.length - 2, Math.floor(s)), u = s - a, c = HEXR[a].map((x, j) => Math.round(x + (HEXR[a + 1][j] - x) * u));
+        ctx.beginPath(); pts.forEach((q, k) => k ? ctx.lineTo(q.x, q.y) : ctx.moveTo(q.x, q.y)); ctx.closePath();
+        ctx.fillStyle = `rgba(${c},${al * (.5 + .5 * t)})`; ctx.fill(); ctx.strokeStyle = `rgba(${c},${Math.min(1, al * 1.1)})`; ctx.lineWidth = .6; ctx.stroke(); }
+    } else if (S.view !== "dots" && !HEXD) loadHex();
+    if (S.view !== "hex") {
+      const r0 = LY.size * (z < 3 ? .75 : z < 5 ? 1 : z < 7 ? 1.3 : 1.7) * (S.view === "both" ? .9 : 1);
+      ctx.lineWidth = .6; ctx.strokeStyle = dark ? "rgba(0,0,0,.7)" : "rgba(255,255,255,.9)";
+      for (let k = 0; k < NV; k++) { const i = VIS[k], p = P[i], r = LY.slSize ? r0 * (.55 + .32 * Math.sqrt(p[5])) : r0;
+        ctx.beginPath(); ctx.arc(XY[2 * i] - ox, XY[2 * i + 1] - oy, r, 0, 7); ctx.fillStyle = colOf(p); ctx.globalAlpha = .88; ctx.fill(); ctx.globalAlpha = 1; if (r >= 1.8) ctx.stroke(); }
+    }
+    if (S.met != null) { const i = S.met; const x = XY[2 * i] - ox, yy = XY[2 * i + 1] - oy; ctx.beginPath(); ctx.arc(x, yy, LY.size + 7, 0, 7); ctx.strokeStyle = dark ? "#fff" : "#000"; ctx.lineWidth = 2.2; ctx.stroke(); }
+  }
+});
+const dots = new Dots().addTo(map);
+function hitDot(cp) {
+  if (!P || !NV || S.view === "hex") return -1; const o = map.getPixelOrigin(), off = map.containerPointToLayerPoint([0, 0]), ox = o.x + off.x, oy = o.y + off.y;
+  let best = -1, bd = 64; for (let k = 0; k < NV; k++) { const i = VIS[k], dx = XY[2 * i] - ox - cp.x, dy = XY[2 * i + 1] - oy - cp.y, d = dx * dx + dy * dy; if (d <= bd) { bd = d; best = i; } }
+  return best;
+}
+function inPoly(x, y, pts) { let ins = false; for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) { const a = pts[i], b = pts[j]; if ((a.y > y) !== (b.y > y) && x < (b.x - a.x) * (y - a.y) / (b.y - a.y) + a.x) ins = !ins; } return ins; }
+function hitHex(cp) { if (!HEX) return null; for (const [pts, id, n] of HEX.paths) if (inPoly(cp.x, cp.y, pts)) return { id, n }; return null; }
+const rangeTxt = () => S.y0 === Y0 && S.y1 === Y1 ? "3001 BCE to 2026" : yt(S.y0) + " to " + yt(S.y1);
+const title = p => p[7] || "Untitled item (no English label)";
+const dtip = i => { const p = P[i]; return `<b>${esc(title(p))}</b><br>${yt(p[2])}${p[6] >= 0 ? " · " + esc(CONF[p[6]]) : ""}<br>${esc(p[8] || "")}`; };
+const htip = h => { let ks = new Map(); for (let i = 0; i < P.length; i++) { const p = P[i]; if (p[HEX.key] === h.id && keep(p)) { const e = eraOf(p[2]); ks.set(e, (ks.get(e) || 0) + 1); } }
+  return `<b>${fmt(h.n)} battle${h.n === 1 ? "" : "s"}</b> in this ${hexSz()} km hexagon, ${rangeTxt()}<br>` + [...ks.entries()].sort((a, b) => a[0] - b[0]).map(([e, n]) => `${esc(ERAS[e][0])}: ${fmt(n)}`).join("<br>"); };
+map.on("click", e => { const h = hitDot(e.containerPoint); if (h >= 0) return pickBattle(h, false); const x = hitHex(e.containerPoint); if (x) L.popup({ maxWidth: 270 }).setLatLng(e.latlng).setContent(htip(x) + "<br><small>Zoom in to see the dots.</small>").openOn(map); });
+map.on("mousemove", e => { const h = hitDot(e.containerPoint); map.getContainer().style.cursor = h >= 0 ? "pointer" : ""; const r = map.getContainer().getBoundingClientRect();
+  if (h >= 0) return showTip(dtip(h), r.left + e.containerPoint.x, r.top + e.containerPoint.y); const x = hitHex(e.containerPoint); if (x) showTip(`<b>${fmt(x.n)} battles</b> in this hexagon`, r.left + e.containerPoint.x, r.top + e.containerPoint.y); else hideTip(); });
+map.on("mouseout", hideTip);
+fetch("data/points.json").then(r => r.json()).then(j => { P = j.rows; Z = -1; dots.draw(); side(); legend(); });
+
+/* ---------- controls ---------- */
+const y0 = document.getElementById("y0"), y1 = document.getElementById("y1");
+(function ticks() { const t = document.getElementById("ticks"); [[-3000, ""], [-1000, "o"], [-300, "o"], [500, ""], [1300, "o"], [1700, ""], [1850, "o"], [2026, ""]].forEach(([y, c]) => { const s = document.createElement("span"); s.className = c; s.style.left = y2p(y) / 10 + "%"; s.textContent = y <= 0 ? (1 - y) + " BCE" : y; if (y === -3000) s.style.transform = "none"; if (y === 2026) s.style.transform = "translateX(-100%)"; t.appendChild(s); }); })();
+function setYears(a, b, fromSlider) {
+  S.y0 = Math.max(Y0, Math.min(a, b)); S.y1 = Math.min(Y1, Math.max(a, b));
+  if (!fromSlider) { y0.value = y2p(S.y0); y1.value = y2p(S.y1); }
+  document.getElementById("y0v").textContent = yt(S.y0); document.getElementById("y1v").textContent = yt(S.y1);
+  const f = document.getElementById("yfill"), a0 = Math.min(+y0.value, +y1.value) / 10, b0 = Math.max(+y0.value, +y1.value) / 10; f.style.left = a0 + "%"; f.style.width = (b0 - a0) + "%";
+  document.querySelectorAll("#eraRow .btn").forEach(x => { const [p, q] = x.dataset.y.split(",").map(Number); x.setAttribute("aria-pressed", p === S.y0 && q === S.y1); });
+  dots.draw(); side(); badge();
+}
+[y0, y1].forEach(i => i.addEventListener("input", () => { stop(); setYears(p2y(+y0.value), p2y(+y1.value), true); }));
+(function eraRow() { const row = document.getElementById("eraRow");
+  [["All time", Y0, Y1], ...ERAS].forEach(([n, a, b], i) => { const x = document.createElement("button"); x.className = "btn"; x.dataset.y = a + "," + b; x.innerHTML = i ? `<i style="background:${ECOL[i - 1]}"></i>${esc(n)}` : esc(n); row.appendChild(x); });
+  row.querySelectorAll(".btn").forEach(b => b.onclick = () => { stop(); const [p, q] = b.dataset.y.split(",").map(Number); setYears(p, q); }); })();
+const press = (row, b) => document.querySelectorAll(row + " .btn").forEach(x => x.setAttribute("aria-pressed", x === b));
+document.querySelectorAll("#viewRow .btn").forEach(b => b.onclick = () => { S.view = b.dataset.v; press("#viewRow", b); dots.draw(); legend(); });
+document.querySelectorAll("#colRow .btn").forEach(b => b.onclick = () => { S.col = b.dataset.c; press("#colRow", b); dots.draw(); legend(); });
+const resetKind = (function filterRow() {
+  const row = document.getElementById("kindRow"), list = KINDS;
+  const all = document.createElement("button"); all.className = "btn"; all.textContent = "All"; all.setAttribute("aria-pressed", "true"); row.appendChild(all);
+  const bs = list.map((n, i) => { const b = document.createElement("button"); b.className = "btn"; b.innerHTML = `<i style="background:${KCOL[i]}"></i>${esc(n)}`; b.setAttribute("aria-pressed", "false"); b.dataset.g = i; row.appendChild(b); return b; });
+  const sync = () => { const allOn = S.kind.size === list.length; all.setAttribute("aria-pressed", allOn); bs.forEach(b => b.setAttribute("aria-pressed", !allOn && S.kind.has(+b.dataset.g))); dots.draw(); side(); };
+  all.onclick = () => { S.kind = new Set(list.map((g, i) => i)); sync(); };
+  bs.forEach(b => b.onclick = () => { const g = +b.dataset.g; if (S.kind.size === list.length) S.kind = new Set([g]); else if (S.kind.has(g)) { S.kind.delete(g); if (!S.kind.size) S.kind = new Set(list.map((x, i) => i)); } else S.kind.add(g); sync(); });
+  return () => { S.kind = new Set(list.map((g, i) => i)); sync(); };
+})();
+const warSel = document.getElementById("warSel"), contSel = document.getElementById("contSel");
+warSel.innerHTML = `<option value="-1">All wars and conflicts</option>` + CONF.slice(0, 120).map((c, i) => `<option value="${i}">${esc(c)} (${SITE.conflict_n[i]})</option>`).join("");
+contSel.innerHTML = `<option value="-2">All continents</option>` + CONTS.map((c, i) => `<option value="${i}">${esc(c[0])}</option>`).join("") + `<option value="-1">Open ocean</option>`;
+function setWar(i, fit) {
+  if (i >= 0 && !warSel.querySelector(`option[value="${i}"]`)) { const o = document.createElement("option"); o.value = i; o.textContent = `${CONF[i]} (${SITE.conflict_n[i]})`; warSel.appendChild(o); }
+  S.war = i; warSel.value = i; S.met = null;
+  if (i >= 0 && P) { const pts = P.filter(p => p[6] === i); if (pts.length) { const a = Math.min(...pts.map(p => p[2])), b = Math.max(...pts.map(p => p[2])); setYears(Y0, Y1); if (fit) map.fitBounds(pts.map(p => [p[0], p[1]]), { padding: [30, 30], maxZoom: 8 }); note(`<b>${esc(CONF[i])}</b>: ${fmt(pts.length)} mapped battles, ${yt(a)} to ${yt(b)}`); } }
+  else note("");
+  dots.draw(); side();
+}
+warSel.onchange = () => setWar(+warSel.value, true);
+contSel.onchange = () => { S.cont = +contSel.value; dots.draw(); side(); };
+
+/* ---------- play: windows that shrink as the record grows ---------- */
+const WIN = [];
+for (let y = -3000; y < -1000; y += 500) WIN.push([y, y + 499, yt(y) + " to " + yt(y + 499)]);
+for (let c = -10; c <= 15; c++) { if (!c) continue; const a = c > 0 ? (c - 1) * 100 + 1 : c * 100 + 1; WIN.push([a, a + 99, cnm(c)]); }
+for (let y = 1501; y <= 1800; y += 25) WIN.push([y, y + 24, y + " to " + (y + 24)]);
+for (let y = 1801; y <= 2026; y += 10) WIN.push([y, Math.min(2026, y + 9), y + " to " + Math.min(2026, y + 9)]);
+let timer = null, WK = -1;
+function badge() { const b = document.getElementById("badge"); if (!S.playing || !CNT) { b.innerHTML = ""; return; } b.innerHTML = `${esc(WIN[WK][2])}<small>${fmt(CNT.n)} battles shown</small>`; }
+function stop() { if (timer) clearInterval(timer); timer = null; if (S.playing) { S.playing = false; document.getElementById("play").textContent = "▶ Play"; badge(); } }
+document.getElementById("play").onclick = () => {
+  if (S.playing) return stop();
+  S.playing = true; document.getElementById("play").textContent = "❚❚ Pause"; S.met = null;
+  WK = WIN.findIndex(w => w[0] === S.y0 && w[1] === S.y1); WK = WK >= 0 && WK < WIN.length - 1 ? WK : 0; setYears(WIN[WK][0], WIN[WK][1]);
+  timer = setInterval(() => { WK++; if (WK >= WIN.length) { stop(); setYears(Y0, Y1); return; } setYears(WIN[WK][0], WIN[WK][1]); }, 950);
+};
+
+/* ---------- legend, side panel ---------- */
+function legend() {
+  const e = document.getElementById("legend"); let h = "";
+  if (S.view !== "hex") h += (S.col === "kind" ? KINDS.map((k, i) => [k, KCOL[i]]) : S.col === "cont" ? [...CONTS, ["Open ocean", "#8C8C8C"]] : ERAS.map((x, i) => [x[0], ECOL[i]])).map(x => `<span><i style="background:${x[1]}"></i>${esc(x[0])}</span>`).join("") + (LY.slSize ? `<span>bigger dots: covered in more Wikipedia languages</span>` : "");
+  if (S.view !== "dots") h += `<span><i class="hx" style="background:rgb(250,200,120)"></i>fewer</span><span class="ramp" style="background:linear-gradient(90deg,${HEXR.map(c => `rgb(${c})`).join(",")})"></span><span>more battles per equal-area hexagon</span>`;
+  if (LY.topReg) h += `<span><i class="sq" style="background:none;border:2px solid #B3202A"></i>most fought-over regions</span>`;
+  if (LY.topHex) h += `<span><i class="sq" style="background:none;border:2px solid #1F1D1A"></i>most fought-over hexagons</span>`;
+  if (LY.centre) h += `<span><i style="background:#7A1016"></i>centre of war by century</span>`;
+  if (LY.cas) h += `<span><i style="background:rgba(179,32,42,.3);border:1px solid #5A0A10"></i>deadliest battles, sized by casualties</span>`;
+  e.innerHTML = h;
+}
+function note(h) { document.getElementById("mapnote").innerHTML = h || ""; }
+function side() {
+  const box = document.getElementById("side"); let h = "";
+  if (S.met != null && P) {
+    const p = P[S.met];
+    h = `<button class="back">Back</button><h4>${esc(ERAS[eraOf(p[2])][0])}</h4><div class="big">${esc(title(p))}</div><table>
+<tr><td>Year</td><td>${yt(p[2])} <small>(${esc(cnm(centOf(p[2])))})</small></td></tr>${p[6] >= 0 ? `<tr><td>War</td><td><span class="go" data-w="${p[6]}">${esc(CONF[p[6]])}</span></td></tr>` : ""}
+<tr><td>Place</td><td>${esc(p[8] || "not given")}${p[4] >= 0 ? " <small>(" + esc(CONTS[p[4]][0]) + ")</small>" : ""}</td></tr><tr><td>Kind</td><td>${esc(KINDS[p[3]])}</td></tr>
+<tr><td>Wikipedia</td><td>${p[5]} language edition${p[5] === 1 ? "" : "s"}</td></tr><tr><td>Position</td><td>${p[0].toFixed(3)}, ${p[1].toFixed(3)}</td></tr></table>
+<p class="sub">Wikidata item <a href="https://www.wikidata.org/wiki/Q${p[9]}" target="_blank" rel="noopener">Q${p[9]}</a>. The point may be the battle's own coordinates or those of the place it is said to have happened.</p>`;
+  } else if (CNT) {
+    h = `<h4>On the map now</h4><div class="big">${fmt(CNT.n)}</div><p class="sub">battles, ${rangeTxt()}${S.war >= 0 ? ", " + esc(CONF[S.war]) : ""}${S.cont >= 0 ? ", " + esc(CONTS[S.cont][0]) : ""}</p><table>` +
+      CONTS.map((t, i) => `<tr><td><i style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${t[1]};margin-right:6px"></i>${esc(t[0])}</td><td class="num">${fmt(CNT.c[i])} <small>${CNT.n ? Math.round(100 * CNT.c[i] / CNT.n) : 0}%</small></td></tr>`).join("") + `</table>`;
+    const top = [...CNT.w.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6);
+    if (top.length && S.war < 0) h += `<h4>Wars with most battles shown</h4><table>` + top.map(([i, n]) => `<tr><td><span class="go" data-w="${i}">${esc(CONF[i])}</span></td><td class="num">${fmt(n)}</td></tr>`).join("") + `</table>`;
+    if (P) { const best = []; for (let i = P.length - 1; i >= 0 && best.length < 6; i--) if (keep(P[i])) best.push(i);
+      h += `<h4>Best-known battles shown</h4><ol>` + best.map(i => `<li><span class="go" data-b="${i}">${esc(title(P[i]))}</span> <small>${yt(P[i][2])}, ${P[i][5]} languages</small></li>`).join("") + `</ol>`; }
+    h += `<p class="sub">Press play to step through time. Click a dot for the battle, or a hexagon for its count. Base maps, labels and the study layers are under Map layers.</p>`;
+  }
+  box.innerHTML = h;
+  const b = box.querySelector(".back"); if (b) b.onclick = () => { S.met = null; map.closePopup(); dots.draw(); side(); };
+  box.querySelectorAll("[data-w]").forEach(e => e.onclick = () => setWar(+e.dataset.w, true));
+  box.querySelectorAll("[data-b]").forEach(e => e.onclick = () => pickBattle(+e.dataset.b, true));
+}
+function toMap() { if (small()) document.getElementById("map").scrollIntoView({ behavior: "smooth", block: "start" }); }
+function pickBattle(i, move) {
+  S.met = i; const p = P[i]; stop();
+  if (!keep(p)) { setYears(Y0, Y1); resetKind(); S.cont = -2; contSel.value = -2; if (S.war >= 0 && p[6] !== S.war) { S.war = -1; warSel.value = -1; } }
+  if (move) { map.setView([p[0], p[1]], Math.max(map.getZoom(), 7)); toMap(); }
+  L.popup({ maxWidth: 290 }).setLatLng([p[0], p[1]]).setContent(`<b>${esc(title(p))}</b><br>${yt(p[2])}${p[6] >= 0 ? " · " + esc(CONF[p[6]]) : ""}<br>${esc(p[8] || "")}${p[8] ? "<br>" : ""}${esc(KINDS[p[3]])} · ${p[5]} Wikipedia language${p[5] === 1 ? "" : "s"}<br><a href="https://www.wikidata.org/wiki/Q${p[9]}" target="_blank" rel="noopener">Wikidata Q${p[9]}</a>`).openOn(map);
+  note(`<b>${esc(title(p))}</b>, ${yt(p[2])}`); dots.draw(); side();
+}
+(function focusRow() {
+  const row = document.getElementById("focusRow");
+  const F = [["World", null], ["Europe", [[35, -11], [62, 32]]], ["Flanders", [[49.6, 1.6], [51.6, 5.4]]], ["Northern Italy", [[43.8, 7], [46.4, 12.8]]], ["Levant", [[29.5, 33.5], [37, 39]]], ["Greece and the Aegean", [[35, 19.5], [41.5, 28.5]]], ["Iberia", [[36, -9.5], [43.8, 3.4]]], ["Eastern United States", [[30, -92], [44, -70]]], ["China", [[20, 98], [42, 124]]], ["Japan", [[30.5, 129], [41.5, 142.5]]], ["Sahel", [[8, -12], [20, 16]]]];
+  F.forEach(([n, b]) => { const x = document.createElement("button"); x.className = "btn"; x.textContent = n; x.onclick = () => { if (!b) { S.met = null; map.closePopup(); map.setView(...HOME()); side(); } else map.fitBounds(b); toMap(); }; row.appendChild(x); });
+})();
+
+/* ---------- search: battles, wars, places and countries ---------- */
+(function search() {
+  const inp = document.getElementById("q"), sug = document.getElementById("sug"); let opts = [], k = -1;
+  const norm = s => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+  const cn = Object.entries(SITE.cname), cf = CONF.map(norm);
+  function build(q) {
+    const nq = norm(q); if (nq.length < 2) return [];
+    const out = [];
+    cn.forEach(([iso, n]) => { if (norm(n).startsWith(nq)) out.push({ t: "c", n, iso, s: 6 }); });
+    cf.forEach((c, i) => { const j = c.indexOf(nq); if (j >= 0) out.push({ t: "w", n: CONF[i], i, s: (j === 0 ? 5 : 3) + Math.log10(SITE.conflict_n[i]) / 3 }); });
+    CITIES.forEach(c => { if (c.pop >= 50000 && norm(c.name).startsWith(nq)) out.push({ t: "p", n: c.name, c, s: 3 + Math.log10(c.pop) / 10 }); });
+    if (P) { for (let i = P.length - 1; i >= 0; i--) { const nm = norm(P[i][7] || ""); const j = nm.indexOf(nq); if (j < 0) continue;
+      const w = nm.replace(/^(battle|siege|capture|sack|fall) of (the )?/, ""); out.push({ t: "b", n: P[i][7], i, s: (w.startsWith(nq) || j === 0 ? 4.5 : 1.5) + P[i][5] / 60 }); if (out.length > 600) break; } }
+    return out.sort((a, b) => b.s - a.s).slice(0, 14);
+  }
+  const lab = o => o.t === "c" ? `${esc(o.n)} <span>country</span>` : o.t === "p" ? `${esc(o.n)} <span>place</span>` : o.t === "w" ? `${esc(o.n)} <span>war, ${SITE.conflict_n[o.i]} battles</span>` : `${esc(o.n)} <span>${yt(P[o.i][2])}</span>`;
+  const show = () => { sug.innerHTML = opts.map((o, i) => `<li role="option" aria-selected="${i === k}" data-i="${i}">${lab(o)}</li>`).join(""); sug.style.display = opts.length ? "block" : "none"; };
+  const choose = o => { sug.style.display = "none"; inp.value = o.n; inp.blur(); stop();
+    if (o.t === "b") return pickBattle(o.i, true);
+    if (o.t === "w") { setWar(o.i, true); return toMap(); }
+    if (o.t === "p") { map.setView([o.c.lat, o.c.lon], 8); return toMap(); }
+    const f = WORLD.features.find(x => x.properties.iso === o.iso); if (f) map.fitBounds(L.geoJSON(f).getBounds(), { padding: [10, 10], maxZoom: 7 }); toMap(); };
+  inp.addEventListener("input", () => { opts = build(inp.value); k = -1; show(); });
+  inp.addEventListener("keydown", e => { if (e.key === "ArrowDown") { k = Math.min(opts.length - 1, k + 1); show(); e.preventDefault(); } else if (e.key === "ArrowUp") { k = Math.max(0, k - 1); show(); e.preventDefault(); } else if (e.key === "Enter" && opts.length) { choose(opts[Math.max(0, k)]); } else if (e.key === "Escape") { sug.style.display = "none"; } });
+  sug.addEventListener("click", e => { const li = e.target.closest("li"); if (li) choose(opts[+li.dataset.i]); });
+  document.addEventListener("click", e => { if (!e.target.closest(".searchbox")) sug.style.display = "none"; });
+})();
+map.on("zoomend moveend", placeNames);
+const zcls = () => map.getContainer().classList.toggle("zLow", map.getZoom() < 6.5); map.on("zoomend", zcls); zcls();
+
+/* ---------- charts ---------- */
+let CMODE = "n", centRedraw = null;
+function centChart() {
+  const box = document.getElementById("centChart"), C = R.centuries.filter(r => r.c >= -13);
+  document.getElementById("centLegend").innerHTML = CONTS.map(([n, c]) => `<span><i class="sq" style="background:${c}"></i>${esc(n)}</span>`).join("") + `<span><i class="sq" style="background:#B9B2A4"></i>dated, not mapped, or open ocean</span>`;
+  centRedraw = resp(box, (w, sm) => {
+    const h = sm ? 300 : 380, m = { l: 50, r: 8, t: 20, b: 34 }, svg = el("svg", { viewBox: `0 0 ${w} ${h}`, role: "img", "aria-label": "Battles per century" }, box);
+    const share = CMODE === "share", log = CMODE === "log", rate = CMODE === "rate";
+    const val = r => rate ? r.per_year : r.n, mx = share ? 1 : rate ? 40 : log ? 4000 : 4000;
+    const Hs = v => log ? (v <= 0 ? 0 : (h - m.t - m.b) * Math.log10(1 + v) / Math.log10(1 + mx)) : (h - m.t - m.b) * v / mx;
+    const ticks = share ? [0, .25, .5, .75, 1] : rate ? [0, 10, 20, 30, 40] : log ? [1, 10, 100, 1000] : [0, 1000, 2000, 3000, 4000];
+    ticks.forEach(v => { const y = h - m.b - Hs(v); el("line", { x1: m.l, x2: w - m.r, y1: y, y2: y, stroke: css("--rule") }, svg); lbl(svg, m.l - 6, y + 4, share ? Math.round(v * 100) + "%" : fmt(v), "lab s m", "end"); });
+    const bw = (w - m.l - m.r) / C.length;
+    C.forEach((r, i) => { const x = m.l + i * bw, tot = val(r), f = rate ? r.per_year / Math.max(1, r.n) : 1; let y = h - m.b;
+      const parts = r.by_cont.map((v, k) => [v, CONTS[k][1]]); parts.push([r.n - r.by_cont.reduce((a, b) => a + b, 0), "#B9B2A4"]);
+      if (share) { const s = r.by_cont.reduce((a, b) => a + b, 0); if (s >= 20) parts.slice(0, 6).forEach(([v, c]) => { const hh = Hs(v / s); y -= hh; el("rect", { x: x + .5, y, width: Math.max(.6, bw - 1.2), height: hh, fill: c }, svg); }); }
+      else if (log) { const hh = Hs(tot); el("rect", { x: x + .5, y: y - hh, width: Math.max(.6, bw - 1.2), height: hh, fill: css("--hot") }, svg); }
+      else parts.forEach(([v, c]) => { if (!v) return; const hh = Hs(v * f); y -= hh; el("rect", { x: x + .5, y, width: Math.max(.6, bw - 1.2), height: hh, fill: c }, svg); });
+      if ([-10, -5, 1, 5, 10, 15, 21].includes(r.c) || (!sm && r.c === 19)) lbl(svg, x + bw / 2, h - 18, r.short.replace(" BCE", ""), "lab s m", "middle");
+      if (r.c === -10 || r.c === 1) lbl(svg, x + bw / 2, h - 5, r.c < 0 ? "BCE" : "CE", "lab s m", "middle");
+      const hit = el("rect", { x, y: m.t, width: bw, height: h - m.t - m.b, fill: "transparent" }, svg);
+      hit.addEventListener("mousemove", ev => showTip(`<b>${esc(r.name)}</b>: ${fmt(r.n)} dated battles (${r.per_year.toFixed(1)} a year), ${fmt(r.n_map)} mapped<br>` + r.by_cont.map((v, k) => [v, k]).filter(x => x[0]).sort((a, b) => b[0] - a[0]).map(([v, k]) => `${esc(CONTS[k][0])}: ${fmt(v)}`).join("<br>") + (r.sl_median != null ? `<br>Median Wikipedia editions: ${r.sl_median}` : ""), ev.clientX, ev.clientY)); hit.addEventListener("mouseleave", hideTip); });
+    if (!share) { const i = C.findIndex(r => r.c === R.peak_century.c), r = C[i]; lbl(svg, m.l + i * bw + bw / 2, h - m.b - Hs(val(r)) - 6, rate ? r.per_year.toFixed(1) : fmt(r.n), "lab s b", "middle"); }
+  });
+}
+document.querySelectorAll("#cMode .btn").forEach(b => b.onclick = () => { CMODE = b.dataset.m; press("#cMode", b); if (centRedraw) centRedraw(); });
+function centreChart() {
+  const C = R.centres;
+  const col = i => { const t = i / (C.length - 1), A = [217, 162, 27], M = [214, 96, 40], Bc = [110, 10, 22]; const [p, q, u] = t < .5 ? [A, M, t * 2] : [M, Bc, (t - .5) * 2]; return `rgb(${p.map((v, j) => Math.round(v + (q[j] - v) * u)).join(",")})`; };
+  resp(document.getElementById("centreChart"), (w, sm) => {
+    const lon0 = -16, lon1 = 62, lat0 = 28, lat1 = 59, h = Math.round(w * (lat1 - lat0) / (lon1 - lon0) * 1.3);
+    const X = lo => (lo - lon0) / (lon1 - lon0) * w, Y = la => (lat1 - la) / (lat1 - lat0) * h;
+    const svg = el("svg", { viewBox: `0 0 ${w} ${h}`, role: "img", "aria-label": "Map of the centre of war by century" }, document.getElementById("centreChart"));
+    el("rect", { x: 0, y: 0, width: w, height: h, fill: css("--sea") }, svg);
+    const g = el("g", {}, svg);
+    WORLD.features.forEach(f => { const cs = f.geometry.type === "MultiPolygon" ? f.geometry.coordinates : [f.geometry.coordinates];
+      cs.forEach(poly => { const ring = poly[0]; if (!ring.some(([x, y]) => x > lon0 - 5 && x < lon1 + 5 && y > lat0 - 5 && y < lat1 + 5)) return;
+        el("path", { d: "M" + ring.map(([x, y]) => X(x).toFixed(1) + "," + Y(y).toFixed(1)).join("L") + "Z", fill: css("--land"), stroke: css("--card"), "stroke-width": .6 }, g); }); });
+    for (let i = 1; i < C.length; i++) el("line", { x1: X(C[i - 1].lon), y1: Y(C[i - 1].lat), x2: X(C[i].lon), y2: Y(C[i].lat), stroke: col(i), "stroke-width": sm ? 1.8 : 2.4, "stroke-linecap": "round", opacity: .85 }, svg);
+    C.forEach((c, i) => { const p = el("circle", { cx: X(c.lon), cy: Y(c.lat), r: sm ? 4.5 : 6.5, fill: col(i), stroke: css("--fg"), "stroke-width": 1 }, svg);
+      p.addEventListener("mousemove", ev => showTip(`<b>${esc(c.name)}</b>: centre in or near ${esc(c.place)}<br>${fmt(c.n)} mapped battles; half within ${fmt(c.median_km)} km of the centre`, ev.clientX, ev.clientY)); p.addEventListener("mouseleave", hideTip); });
+    // labels on open sea, placed by hand
+    const LB = [[-5, "5th BCE", 18.6, 35.9, "middle"], [-1, "1st BCE", 12.6, 39.3, "middle"], [2, "2nd and 3rd", 56.5, 47.6, "middle"], [20, "20th", 30.6, 43.9, "middle"],
+      [7, "7th and 21st", 29.5, 33.0, "middle"], [19, "19th", -7, 46.6, "middle"], [15, "5th to 18th: around the Alps", 2.5, 56.3, "middle"]];
+    LB.forEach(([c, t, lo, la, an]) => { const k = C.findIndex(x => x.c === c); if (k < 0) return; const tx = lbl(svg, sm && c === 2 ? X(61.5) : X(lo), Y(la), sm && t.includes(":") ? "5th to 18th: Alps" : sm && c === 2 ? "2nd, 3rd" : t, "lab b halo" + (sm ? " s" : ""), sm && c === 2 ? "end" : an); tx.setAttribute("style", `fill:${c === 15 ? css("--fg") : col(k)};stroke:${css("--sea")}`); });
+    const lg = el("g", {}, svg), lx = 8, ly = h - 30, lw = Math.min(220, w * .4);
+    const gr = el("defs", {}, svg), lgr = el("linearGradient", { id: "cgrad" }, gr); [0, .5, 1].forEach(o => el("stop", { offset: o, "stop-color": col(o * (C.length - 1)) }, lgr));
+    el("rect", { x: lx, y: ly, width: lw, height: 8, fill: "url(#cgrad)", stroke: css("--fg"), "stroke-width": .5 }, lg);
+    lbl(lg, lx, ly + 21, sm ? "6th BCE" : "6th century BCE", "lab s halo"); lbl(lg, lx + lw, ly + 21, sm ? "21st" : "21st century", "lab s halo", "end");
+  });
+  const t = document.getElementById("centreTable");
+  t.innerHTML = `<thead><tr><th>Century</th><th class="r">Battles</th><th>Centre in or near</th><th class="r">Half within</th></tr></thead><tbody>` + C.map(c => `<tr><td>${esc(c.name)}</td><td class="r">${fmt(c.n)}</td><td>${esc(c.place)}${c.at_sea ? " (at sea)" : ""}</td><td class="r">${fmt(c.median_km)} km</td></tr>`).join("") + `</tbody>`;
+}
+function ebar(be) { const s = be.reduce((a, b) => a + b, 0) || 1; return `<div class="ebar">` + be.map((v, i) => v ? `<i style="width:${100 * v / s}%;background:${ECOL[i]}" title="${esc(ERAS[i][0])}: ${v}"></i>` : "").join("") + `</div>`; }
+function placesBox() {
+  const g = document.getElementById("places");
+  const box = (title, sub, list, val, key) => `<div class="pbox"><h4>${title}</h4><p>${sub}</p>` + list.map((r, i) => `<div class="prow" data-k="${key},${i}"><span class="k">${i + 1}</span><div><span class="nm">${esc(r.name)}</span><small>${r.famous.slice(0, 2).map(esc).join("; ")}</small>${ebar(r.by_era)}</div><span class="v">${val(r)}</span></div>`).join("") + `</div>`;
+  g.innerHTML = box("Regions, by battles", `Seven hexagons, ${fmt(R.region_km2)} km² each. Number: battles.`, R.regions.slice(0, 12), r => fmt(r.n), "g") +
+    box("Hexagons, by centuries", `One hexagon, ${fmt(R.hex_km2)} km². Number: centuries with a battle.`, R.hex_cent.slice(0, 12), r => r.cent, "h");
+  document.getElementById("eraLegend").innerHTML = ERAS.map((e, i) => `<span><i class="sq" style="background:${ECOL[i]}"></i>${esc(e[0])}</span>`).join("");
+  g.querySelectorAll("[data-k]").forEach(e => e.onclick = () => { const [k, i] = e.dataset.k.split(","); const r = k === "g" ? R.regions[+i] : R.hex_cent[+i];
+    stop(); setYears(Y0, Y1); S.war = -1; warSel.value = -1; if (k === "g") LY.topReg = true; else LY.topHex = true; applyLayers(); legend();
+    document.getElementById("atlas").scrollIntoView({ behavior: "smooth" }); setTimeout(() => { map.setView([r.lat, r.lon], k === "g" ? 6.5 : 7.5); note(`<b>${esc(r.name)}</b>: ${fmt(r.n)} battles in ${r.cent} centuries`); }, 350); });
+  const t = document.getElementById("ctyTable"), A = R.countries_top, B = R.countries_dense;
+  t.innerHTML = `<thead><tr><th>Most battles</th><th class="r">Battles</th><th>Most per 10,000 km²</th><th class="r">Per 10,000 km²</th></tr></thead><tbody>` + A.map((a, i) => `<tr><td>${esc(a.name)}</td><td class="r">${fmt(a.n)}</td><td>${esc(B[i].name)}</td><td class="r">${B[i].per10k.toFixed(1)} <small>(${fmt(B[i].n)})</small></td></tr>`).join("") + `</tbody>`;
+}
+function warChart() {
+  const Wr = R.wars.slice(0, 20);
+  document.getElementById("warLegend").innerHTML = CONTS.map(([n, c]) => `<span><i class="sq" style="background:${c}"></i>${esc(n)}</span>`).join("");
+  resp(document.getElementById("warChart"), (w, sm) => {
+    const lw = sm ? 150 : 230, rh = 24, h = Wr.length * rh + 8, x0 = lw, x1 = w - 70, mx = 864;
+    const svg = el("svg", { viewBox: `0 0 ${w} ${h}`, role: "img", "aria-label": "Wars with the most battles" }, document.getElementById("warChart"));
+    Wr.forEach((r, i) => { const y = 4 + i * rh, bw = (x1 - x0) * r.n / mx, nm = sm && r.name.length > 21 ? r.name.slice(0, 20) + "." : r.name;
+      lbl(svg, x0 - 8, y + 15, nm, "lab" + (sm ? " s" : ""), "end");
+      const b = el("rect", { x: x0, y: y + 3, width: bw, height: rh - 8, fill: r.cont != null ? CONTS[r.cont][1] : "#999", rx: 1.5 }, svg); b.style.cursor = "pointer";
+      lbl(svg, x0 + bw + 5, y + 15, fmt(r.n), "lab s b"); lbl(svg, x0 + bw + 5 + String(fmt(r.n)).length * 7.2 + 6, y + 15, "· " + r.sl_med, "lab s m");
+      b.addEventListener("mousemove", ev => showTip(`<b>${esc(r.name)}</b><br>${fmt(r.n)} battle items, ${fmt(r.n_map)} mapped<br>${r.y0 != null ? yt(r.y0) + " to " + yt(r.y1) : ""}<br>Median Wikipedia editions per battle: ${r.sl_med}<br>Best known: ${esc(r.top)}`, ev.clientX, ev.clientY)); b.addEventListener("mouseleave", hideTip);
+      b.addEventListener("click", () => { const i2 = CONF.indexOf(r.name); if (i2 >= 0) { document.getElementById("atlas").scrollIntoView({ behavior: "smooth" }); setTimeout(() => setWar(i2, true), 350); } }); });
+  });
+}
+function contChart() {
+  const C = R.centuries.filter(r => r.by_cont.reduce((a, b) => a + b, 0) >= 20);
+  document.getElementById("contLegend").innerHTML = CONTS.map(([n, c]) => `<span><i class="sq" style="background:${c}"></i>${esc(n)}</span>`).join("");
+  resp(document.getElementById("contChart"), (w, sm) => {
+    const h = sm ? 260 : 300, m = { l: 40, r: 6, t: 8, b: 34 }, svg = el("svg", { viewBox: `0 0 ${w} ${h}`, role: "img", "aria-label": "Share of battles by continent per century" }, document.getElementById("contChart"));
+    const bw = (w - m.l - m.r) / C.length, Hh = h - m.t - m.b;
+    [0, .5, 1].forEach(v => { const y = h - m.b - Hh * v; lbl(svg, m.l - 6, y + 4, Math.round(v * 100) + "%", "lab s m", "end"); });
+    C.forEach((r, i) => { const s = r.by_cont.reduce((a, b) => a + b, 0), x = m.l + i * bw; let y = h - m.b;
+      r.by_cont.forEach((v, k) => { if (!v) return; const hh = Hh * v / s; y -= hh; el("rect", { x: x + .4, y, width: bw - .8, height: hh, fill: CONTS[k][1] }, svg); });
+      if (i % (sm ? 4 : 2) === 0 || r.c === 21) lbl(svg, x + bw / 2, h - 18, r.short.replace(" BCE", ""), "lab s m", "middle");
+      if (r.c === -6 || r.c === 1) lbl(svg, x + bw / 2, h - 5, r.c < 0 ? "BCE" : "CE", "lab s m", "middle");
+      const hit = el("rect", { x, y: m.t, width: bw, height: Hh, fill: "transparent" }, svg);
+      hit.addEventListener("mousemove", ev => showTip(`<b>${esc(r.name)}</b>, ${fmt(s)} mapped battles<br>` + r.by_cont.map((v, k) => v ? `${esc(CONTS[k][0])}: ${Math.round(100 * v / s)}%` : "").filter(Boolean).join("<br>"), ev.clientX, ev.clientY)); hit.addEventListener("mouseleave", hideTip); });
+  });
+}
+function slChart() {
+  const box = document.getElementById("slChart");
+  document.getElementById("slLegend").innerHTML = CONTS.map(([n, c]) => `<span><i style="background:${c}"></i>${esc(n)}</span>`).join("") + `<span><i class="sq" style="background:var(--fg);height:3px"></i>median</span><span><i class="sq" style="background:var(--hot);height:3px"></i>90th percentile</span>`;
+  let pts = null;
+  const draw = () => resp(box, (w, sm) => {
+    const h = sm ? 320 : 400, m = { l: 40, r: 10, t: 12, b: 30 }, svg = el("svg", { viewBox: `0 0 ${w} ${h}`, role: "img", "aria-label": "Wikipedia language editions against year for every dated battle" }, box);
+    const X = y => m.l + y2p(y) / 1000 * (w - m.l - m.r), Yv = v => h - m.b - Math.log10(1 + v) / Math.log10(121) * (h - m.t - m.b);
+    [0, 1, 3, 10, 30, 100].forEach(v => { const y = Yv(v); el("line", { x1: m.l, x2: w - m.r, y1: y, y2: y, stroke: css("--rule") }, svg); lbl(svg, m.l - 6, y + 4, v, "lab s m", "end"); });
+    [-3000, -1000, -300, 500, 1300, 1700, 1850, 2026].forEach((y, i) => { if (i === 1 || (sm && (i === 2 || i === 6))) return; lbl(svg, X(y), h - 10, yt(y), "lab s m", i === 0 ? "start" : i === 7 ? "end" : "middle"); });
+    const g = el("g", {}, svg);
+    pts.forEach(([y, s, c]) => { el("circle", { cx: X(y) + (Math.random() - .5) * 1.5, cy: Yv(s) + (Math.random() - .5) * 4, r: 1.3, fill: c >= 0 ? CONTS[c][1] : "#999", opacity: .32 }, g); });
+    const line = (k, col) => el("path", { d: R.sl_quant.map((q, i) => (i ? "L" : "M") + X(q[1]).toFixed(1) + "," + Yv(q[k]).toFixed(1)).join(""), fill: "none", stroke: col, "stroke-width": 2.6 }, svg);
+    line(3, css("--hot")); line(2, css("--fg"));
+    [0, 1, 3].forEach(i => { const b = R.most_linked[i], yy = b.year.endsWith("BCE") ? 1 - parseInt(b.year) : +b.year, x = X(yy), right = x > w * .6; if (sm && i === 1) return; lbl(svg, x + (right ? -7 : 7), Yv(b.sl) + 4, b.label.replace("Battle of ", ""), "lab s b halo", right ? "end" : "start"); });
+    svg.addEventListener("mousemove", ev => { const r = svg.getBoundingClientRect(), sx = (ev.clientX - r.left) * w / r.width; let best = null, bd = 1e9; R.sl_quant.forEach(q => { const d = Math.abs(X(q[1]) - sx); if (d < bd) { bd = d; best = q; } });
+      if (best) showTip(`<b>${esc(cnm(best[0]))}</b>: ${fmt(best[4])} battles<br>Median ${best[2]} Wikipedia editions, 90th percentile ${best[3]}`, ev.clientX, ev.clientY); });
+    svg.addEventListener("mouseleave", hideTip);
+  });
+  fetch("data/sitelinks_by_year.json").then(r => r.json()).then(j => { pts = j.rows; draw(); });
+}
+function kindChart() {
+  const K = R.kinds;
+  resp(document.getElementById("kindChart"), (w, sm) => {
+    const lw = sm ? 150 : 200, rh = 26, h = K.length * rh + 6, x0 = lw, x1 = w - 90;
+    const svg = el("svg", { viewBox: `0 0 ${w} ${h}`, role: "img", "aria-label": "Battle items by what their label calls them" }, document.getElementById("kindChart"));
+    K.forEach((k, i) => { const y = 3 + i * rh, bw = Math.max(1.5, (x1 - x0) * Math.sqrt(k.n / K[0].n));
+      lbl(svg, x0 - 8, y + 16, k.name, "lab" + (sm ? " s" : ""), "end"); el("rect", { x: x0, y: y + 4, width: bw, height: rh - 9, fill: KCOL[i], rx: 1.5 }, svg);
+      lbl(svg, x0 + bw + 6, y + 16, `${fmt(k.n)} (${k.pct < 1 ? k.pct.toFixed(1) : Math.round(k.pct)}%)`, "lab s b"); });
+    lbl(svg, w - 2, h - 2, "bar length: square root scale", "lab s m", "end");
+  });
+}
+function charts() { centChart(); centreChart(); placesBox(); warChart(); contChart(); slChart(); kindChart(); }
+
+/* ---------- start ---------- */
+document.getElementById("theme").onclick = () => { const r = document.documentElement; r.dataset.theme = isDark() ? "light" : "dark"; setTiles(); legend(); redraws.forEach(f => f()); };
+charts(); setTiles(); legend(); setYears(Y0, Y1); placeNames(); side();
+</script>
+/*FULLSCREEN*/
+</body>
+</html>

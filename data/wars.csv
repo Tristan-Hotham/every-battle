@@ -1,0 +1,26 @@
+name,battles,mapped,median_sitelinks,total_sitelinks,first_year,last_year,main_continent,most_linked_battle
+World War II,864,707,5.0,8420,1939,1945,Europe,Battle of Stalingrad
+World War I,532,480,6.0,5121,1914,1919,Europe,Battle of Verdun
+American Civil War,524,518,5.0,3141,1861,1865,North America,Battle of Gettysburg
+American Revolutionary War,221,198,4.0,1489,1775,1783,North America,Siege of Yorktown
+Peninsular War,155,155,5.0,964,1808,1814,Europe,Battle of Vitoria
+Russian Civil War,128,57,2.0,439,1910,1922,Europe,Battle of Kruty
+Seven Years' War,127,119,9.0,1304,1755,1763,Europe,Battle of the Plains of Abraham
+Greek War of Independence,120,74,1.0,448,1821,1829,Europe,Battle of Navarino
+Polish-Soviet War,119,45,1.0,328,1918,1920,Europe,Battle of Warsaw
+War in the Vendée,116,114,3.0,449,1793,1815,Europe,Battle of Cholet
+French Revolutionary Wars,109,94,3.0,618,1792,1801,Europe,Battle of the Pyramids
+Thirty Years' War,105,94,6.0,735,1618,1648,Europe,Battle of Lützen
+Korean War,95,79,4.0,517,1950,1953,Asia,Battle of Inchon
+Great Northern War,93,61,5.0,687,1700,1721,Europe,Battle of Poltava
+Vietnam War,88,72,5.0,639,1963,1975,Asia,Fall of Saigon
+War of the First Coalition,82,80,4.0,499,1792,1797,Europe,Battle of Valmy
+Syrian Civil War,78,78,6.0,534,2012,2025,Asia,Battle of Aleppo
+Eighty Years' War,75,69,4.0,422,1567,1646,Europe,Battle of Heiligerlee
+Chouannerie,75,75,1.0,94,1793,1815,Europe,Battle of Quiberon
+War of 1812,74,70,2.0,331,1812,1815,North America,Battle of New Orleans
+Hundred Years' War,71,71,8.0,813,1328,1453,Europe,Battle of Agincourt
+Reconquista,71,71,4.0,437,718,1452,Europe,Battle of Covadonga
+Napoleonic Wars,70,63,3.0,600,1794,1815,Europe,Battle of Austerlitz
+Finnish Civil War,67,51,1.0,136,1918,1918,Europe,Battle of Helsinki
+War in Afghanistan (2001 to 2021),66,56,3.0,421,2001,2021,Asia,Fall of Kabul
