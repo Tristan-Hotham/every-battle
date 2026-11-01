@@ -1,0 +1,17 @@
+{
+  "title": "Every battle in history, mapped",
+  "slug": "every-battle",
+  "excerpt": "Wikidata knows of 20,202 battles. I mapped the 13,712 with a place and a date, from 3001 BCE to 2026, to find the most fought-over places on Earth, follow the centre of war century by century, and see how much the famous map is really a map of who wrote things down.",
+  "seo_description": "13,712 battles mapped from Wikidata, 3001 BCE to 2026: the most fought-over places, the centre of war, and the bias in the record.",
+  "tags": [
+    "battles",
+    "military history",
+    "maps",
+    "data visualisation",
+    "Wikidata",
+    "Wikipedia",
+    "historical GIS",
+    "open data"
+  ],
+  "header_alt": "Title card reading 'Every battle in history' in black and red on pale paper, beside a map of Europe, North Africa and the Middle East covered in small dots coloured by era, densest in western Europe and the Levant. Text: 13,712 battles with a place and a date, 3001 BCE to 2026; most fought-over: Flanders, 369 battles; Europe has 51% of battles and 7% of the land."
+}
