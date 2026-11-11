@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+message: "If you use this data or code, please cite it as below."
+title: "Every Battle in History: Five Thousand Years of Battles in Wikidata, Where War Happened, the Most Fought-Over Places, and How Skewed the Record Is"
+type: dataset
+authors:
+  - family-names: Hotham
+    given-names: Tristan
+    orcid: "https://orcid.org/0000-0003-4931-9349"
+    affiliation: "Independent researcher"
+doi: "10.5281/zenodo.23857870"
+url: "https://maps.tristanhotham.com/every-battle/"
+repository-code: "https://github.com/Tristan-Hotham/every-battle"
+license: CC-BY-4.0
+keywords:
+  - "battles"
+  - "military history"
+  - "Wikidata"
+  - "Wikipedia"
+  - "knowledge gaps"
+  - "historical GIS"
+  - "spatial analysis"
+  - "open data"
+  - "maps"
